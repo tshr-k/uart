@@ -20,7 +20,7 @@ void DutFixture<Vfifo>::dut_reset() {
 
 using FifoFixture = DutFixture<Vfifo>;
 
-const std::string wave_path = "traces/fifo.fst";
+const std::string wave_path = "traces/fifo/fifo.fst";
 
 
 TEST_CASE_METHOD(FifoFixture, "fifo reset works", "[fifo]") {

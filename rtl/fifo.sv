@@ -16,16 +16,12 @@ module fifo #(
     initial begin
         assert (DATA_WIDTH > 0)
             else $fatal(1, "DATA_WIDTH must be > 0");
-
         assert (DEPTH > 0)
             else $fatal(1, "DEPTH must be > 0");
     end
 
-
-    localparam int unsigned ADDR_WIDTH = $clog2(DEPTH);
-
     typedef logic [DATA_WIDTH-1:0]      data_t;
-    typedef logic [ADDR_WIDTH-1:0]      ptr_t;
+    typedef logic [$clog2(DEPTH)-1:0]   ptr_t;
     typedef logic [$clog2(DEPTH+1)-1:0] count_t;
 
     data_t  data_array [0:DEPTH-1];
@@ -38,14 +34,14 @@ module fifo #(
 
     function automatic ptr_t next_ptr(input ptr_t ptr);
         // advance ptr with wraparound
-        if (ptr == ADDR_WIDTH'(DEPTH-1))
+        if (ptr == ptr_t'(DEPTH-1))
             return 0;
         else
             return ptr + 1;
     endfunction
 
     assign empty   = (count == 0);
-    assign full    = (count == $bits(count)'(DEPTH));
+    assign full    = (count == count_t'(DEPTH));
     assign rd_data = data_array[rd_ptr];
 
     assign wr_ok  = wr_en  && !full;
