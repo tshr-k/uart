@@ -33,16 +33,16 @@ module fifo #(
     function automatic ptr_t next_ptr(input ptr_t ptr);
         // advance ptr with wraparound
         if (ptr == ptr_t'(DEPTH-1))
-            return 0;
+            return '0;
         else
             return ptr + 1;
     endfunction
 
     always_ff @(posedge clk or posedge a_rst) begin
         if (a_rst) begin
-            wr_ptr <= 0;
-            rd_ptr <= 0;
-            count  <= 0;
+            wr_ptr <= '0;
+            rd_ptr <= '0;
+            count  <= '0;
         end else begin
             // both write and pop can occur on same clock edge
             if (wr_ok) begin
@@ -62,7 +62,7 @@ module fifo #(
         end
     end
 
-    assign empty   = (count == 0);
+    assign empty   = (count == '0);
     assign full    = (count == count_t'(DEPTH));
     assign rd_data = data_array[rd_ptr];  // asynchronous read
 

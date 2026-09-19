@@ -41,7 +41,7 @@ module uart_tx #(
     always_ff @(posedge clk or posedge a_rst) begin
         if (a_rst) begin
             state     <= IDLE;
-            bit_count <= 0;
+            bit_count <= '0;
             tx        <= 1'b1;
             done_tick <= 1'b0;
         end else begin
@@ -71,7 +71,7 @@ module uart_tx #(
 
             START: begin
                 state_next     = DATA;
-                bit_count_next = 0;
+                bit_count_next = '0;
                 tx_next        = 1'b0;
             end
 
@@ -81,7 +81,7 @@ module uart_tx #(
 
                 if (bit_count == bit_count_t'(DATA_BITS-1)) begin
                     state_next     = (PARITY_CFG == PARITY_NONE) ? STOP : PARITY;
-                    bit_count_next = 0;
+                    bit_count_next = '0;
                 end
             end
 

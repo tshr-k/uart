@@ -16,8 +16,8 @@ module counter #(
 
     always_ff @(posedge clk or posedge a_rst) begin
         if (a_rst)
-            count <= 0;
+            count <= '0;
         else if (en)
-            count <= (count == count_t'(MODULO-1)) ? 0 : (count + 1);
+            count <= (count == count_t'(MODULO-1)) ? '0 : (count + 1);
     end
 endmodule

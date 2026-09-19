@@ -64,8 +64,8 @@ module uart_rx #(
             state      <= IDLE;
             rx_sync_1  <= 1'b1;
             rx_sync_2  <= 1'b1;
-            tick_count <= 0;
-            data_count <= 0;
+            tick_count <= '0;
+            data_count <= '0;
             done_tick  <= 1'b0;
             error_tick <= 1'b0;
         end else begin
@@ -99,7 +99,7 @@ module uart_rx #(
             IDLE:
                 if (rx_sync_2 == 1'b0) begin
                     state_next      = START;
-                    tick_count_next = 0;
+                    tick_count_next = '0;
                 end
 
             START:
@@ -108,8 +108,8 @@ module uart_rx #(
                         state_next = IDLE;
                     end else begin
                         state_next      = DATA;
-                        tick_count_next = 0;
-                        data_count_next = 0;
+                        tick_count_next = '0;
+                        data_count_next = '0;
                     end
                 end else begin
                     tick_count_next = tick_count + 1;
@@ -117,7 +117,7 @@ module uart_rx #(
 
             DATA:
                 if (tick_count == DATA_SAMPLE_TICK) begin
-                    tick_count_next           = 0;
+                    tick_count_next           = '0;
                     data_out_next[data_count] = rx_sync_2;
                     if (data_count == data_count_t'(DATA_BITS-1))
                         state_next = (PARITY_CFG == PARITY_NONE) ? STOP : PARITY;
@@ -130,7 +130,7 @@ module uart_rx #(
             PARITY:
                 if (tick_count == DATA_SAMPLE_TICK) begin
                     state_next      = STOP;
-                    tick_count_next = 0;
+                    tick_count_next = '0;
                     parity_bit_next = rx_sync_2;
                 end else begin
                     tick_count_next = tick_count + 1;
