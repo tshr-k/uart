@@ -22,14 +22,14 @@ using CounterFixture = DutFixture<Vcounter>;
 const std::string wave_path = "traces/counter/counter.fst";
 
 
-TEST_CASE_METHOD(CounterFixture, "counter reset works", "[counter]") {
+TEST_CASE_METHOD(CounterFixture, "Counter reset works", "[counter]") {
     // open_trace(wave_path);
     
     dut_reset();
     CHECK(dut->count == 0); 
 }
 
-TEST_CASE_METHOD(CounterFixture, "counter enable works", "[counter]") {
+TEST_CASE_METHOD(CounterFixture, "Counter enable works", "[counter]") {
     // open_trace(wave_path);
 
     dut_reset();
@@ -49,7 +49,7 @@ TEST_CASE_METHOD(CounterFixture, "counter enable works", "[counter]") {
     CHECK(dut->count == 3);
 }
 
-TEST_CASE_METHOD(CounterFixture, "counter wraps around", "[counter]") {
+TEST_CASE_METHOD(CounterFixture, "Counter wraps around", "[counter]") {
     open_trace(wave_path);
 
     dut_reset();

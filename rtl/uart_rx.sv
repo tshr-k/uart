@@ -16,8 +16,8 @@ module uart_rx #(
     output logic                 done_tick,  // asserted even on error
     output logic                 error_tick  // parity or frame error
 );
-    // validate parameters
     initial begin
+        // validate parameters
         assert (DATA_BITS > 1)
             else $fatal(1, "DATA_BITS must be > 1");
         assert (STOP_BITS inside {STOP_1, STOP_1P5, STOP_2})

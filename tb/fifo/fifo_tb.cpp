@@ -23,7 +23,7 @@ using FifoFixture = DutFixture<Vfifo>;
 const std::string wave_path = "traces/fifo/fifo.fst";
 
 
-TEST_CASE_METHOD(FifoFixture, "fifo reset works", "[fifo]") {
+TEST_CASE_METHOD(FifoFixture, "FIFO reset works", "[fifo]") {
     // open_trace(wave_path);
     
     dut_reset();
@@ -35,7 +35,7 @@ TEST_CASE_METHOD(FifoFixture, "fifo reset works", "[fifo]") {
     sim.clk.cycles(3);
 }
 
-TEST_CASE_METHOD(FifoFixture, "fifo write and read work", "[fifo]") {
+TEST_CASE_METHOD(FifoFixture, "FIFO write and read work", "[fifo]") {
     // open_trace(wave_path);
 
     dut_reset();
@@ -74,8 +74,8 @@ TEST_CASE_METHOD(FifoFixture, "fifo write and read work", "[fifo]") {
     CHECK_FALSE(dut->full);
 }
 
-TEST_CASE_METHOD(FifoFixture, "fifo RTL matches reference C++ model", "[fifo]") {
-    open_trace(wave_path);
+TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") {
+    // open_trace(wave_path);
 
     dut_reset();
 
@@ -102,8 +102,8 @@ TEST_CASE_METHOD(FifoFixture, "fifo RTL matches reference C++ model", "[fifo]") 
         const bool wr_ok = wr_en && !ref.full();
         const bool pop_ok = pop_en && !ref.empty();
         if (pop_ok) {
-            std::uint8_t value = 0;
-            REQUIRE(ref.try_pop(value));
+            std::uint8_t data = 0;
+            REQUIRE(ref.try_pop(data));
         }
         if (wr_ok) {
             REQUIRE(ref.try_write(wr_data));
@@ -113,15 +113,15 @@ TEST_CASE_METHOD(FifoFixture, "fifo RTL matches reference C++ model", "[fifo]") 
         lockstep_check();
     };
 
-    for (std::uint8_t value = 0; value < 16; ++value) {
-        lockstep_cycle(true, value, false);
+    for (std::uint8_t data = 0; data < 16; ++data) {
+        lockstep_cycle(true, data, false);
     }
 
     lockstep_cycle(true, 0xff, false);  // write while full is ignored
     lockstep_cycle(true, 0xee, true);  // simultaneous read and blocked write
 
-    for (std::uint8_t value = 16; value < 31; ++value) {
-        lockstep_cycle(true, value, true);  // simultaneous read and write
+    for (std::uint8_t data = 16; data < 31; ++data) {
+        lockstep_cycle(true, data, true);  // simultaneous read and write
     }
 
     lockstep_cycle(false, 0, true);

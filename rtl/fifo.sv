@@ -12,8 +12,8 @@ module fifo #(
     output logic                  full,
     output logic [DATA_WIDTH-1:0] rd_data
 );
-    // validate parameters
     initial begin
+        // validate parameters
         assert (DATA_WIDTH > 0)
             else $fatal(1, "DATA_WIDTH must be > 0");
         assert (DEPTH > 0)
@@ -40,13 +40,6 @@ module fifo #(
             return ptr + 1;
     endfunction
 
-    assign empty   = (count == 0);
-    assign full    = (count == count_t'(DEPTH));
-    assign rd_data = data_array[rd_ptr];
-
-    assign wr_ok  = wr_en  && !full;
-    assign pop_ok = pop_en && !empty;
-
     always_ff @(posedge clk or posedge a_rst) begin
         if (a_rst) begin
             wr_ptr <= 0;
@@ -70,4 +63,11 @@ module fifo #(
             endcase
         end
     end
+
+    assign empty   = (count == 0);
+    assign full    = (count == count_t'(DEPTH));
+    assign rd_data = data_array[rd_ptr];
+
+    assign wr_ok  = wr_en  && !full;
+    assign pop_ok = pop_en && !empty;
 endmodule
