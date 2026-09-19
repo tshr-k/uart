@@ -22,7 +22,10 @@ add_executable(test_counter
 verilate(
     test_fifo
     SOURCES
+        rtl/utils_pkg.sv
         rtl/fifo.sv
+    TOP_MODULE fifo
+    PREFIX Vfifo
     TRACE_FST
 )
 

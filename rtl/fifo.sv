@@ -1,3 +1,5 @@
+import utils_pkg::*;
+
 module fifo #(
     parameter type         data_t = logic [7:0],  // synthesizable and packed
     parameter int unsigned DEPTH  = 16
@@ -17,10 +19,8 @@ module fifo #(
             else $fatal(1, "DEPTH must be > 0");
     end
 
-    localparam int unsigned PTR_WIDTH = (DEPTH > 1) ? $clog2(DEPTH) : 1;
-
-    typedef logic [PTR_WIDTH-1:0]       ptr_t;
-    typedef logic [$clog2(DEPTH+1)-1:0] count_t;
+    typedef logic [min1_clog2(DEPTH)-1:0] ptr_t;
+    typedef logic [$clog2(DEPTH+1)-1:0]   count_t;
 
     data_t  data_array [0:DEPTH-1];
     ptr_t   wr_ptr;
