@@ -29,6 +29,11 @@ add_executable(test_uart_tx
     tb/main.cpp
 )
 
+add_executable(test_tick_gen
+    # tb/tick_gen/tick_gen_tb.cpp
+    tb/main.cpp
+)
+
 verilate(
     test_fifo
     SOURCES
@@ -68,6 +73,16 @@ verilate(
     TRACE_FST
 )
 
+verilate(
+    test_tick_gen
+    SOURCES
+        rtl/utils_pkg.sv
+        rtl/tick_gen.sv
+    TOP_MODULE tick_gen
+    PREFIX Vtick_gen
+    TRACE_FST
+)
+
 target_include_directories(test_fifo PRIVATE
     tb
     tb/fifo
@@ -88,6 +103,11 @@ target_include_directories(test_uart_tx PRIVATE
     tb/uart_tx
 )
 
+target_include_directories(test_tick_gen PRIVATE
+    tb
+    tb/tick_gen
+)
+
 target_link_libraries(test_fifo PRIVATE
     Catch2::Catch2
 )
@@ -101,6 +121,10 @@ target_link_libraries(test_uart_rx PRIVATE
 )
 
 target_link_libraries(test_uart_tx PRIVATE
+    Catch2::Catch2
+)
+
+target_link_libraries(test_tick_gen PRIVATE
     Catch2::Catch2
 )
 
