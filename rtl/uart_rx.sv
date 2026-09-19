@@ -1,4 +1,5 @@
 import uart_pkg::*;
+import utils_pkg::*;
 
 module uart_rx #(
     parameter int unsigned DATA_BITS   = 8,
@@ -9,7 +10,7 @@ module uart_rx #(
     // a "tick" is asserted for exactly one clock cycle
     input  logic                 clk,
     input  logic                 a_rst,
-    input  logic                 en_tick,
+    input  logic                 en_tick,  // asserted OVERSAMPLE times per bit
     input  logic                 rx,
 
     output logic [DATA_BITS-1:0] data_out,
@@ -17,27 +18,27 @@ module uart_rx #(
     output logic                 error_tick  // parity or frame error
 );
     initial begin
-        // validate parameters
-        assert (DATA_BITS > 1)
-            else $fatal(1, "DATA_BITS must be > 1");
-        assert (STOP_BITS inside {STOP_1, STOP_1P5, STOP_2})
-            else $fatal(1, "STOP_BITS must be STOP_1, STOP_1P5 or STOP_2");
-        assert (PARITY_MODE inside {PARITY_NONE, PARITY_ODD, PARITY_EVEN})
-            else $fatal(1, "PARITY_MODE must be PARITY_NONE, PARITY_ODD or PARITY_EVEN");
+        validate_shared_params(
+            DATA_BITS,
+            STOP_BITS,
+            PARITY_MODE
+        );
+
         assert (OVERSAMPLE > 0)
             else $fatal(1, "OVERSAMPLE must be > 0");
         assert (OVERSAMPLE % 2 == 0)
             else $fatal(1, "OVERSAMPLE must be even");
     end
 
-    localparam int unsigned STOP_TICKS        = stop_ticks(STOP_BITS, OVERSAMPLE);
-    localparam int unsigned DATA_SAMPLE_TICK  = OVERSAMPLE   - 1;
-    localparam int unsigned START_SAMPLE_TICK = OVERSAMPLE/2 - 1;
-    localparam int unsigned MAX_TICKS = (STOP_TICKS > OVERSAMPLE) ? STOP_TICKS : OVERSAMPLE;
+    localparam int unsigned STOP_TICKS = stop_ticks(STOP_BITS, OVERSAMPLE);
+    localparam int unsigned MAX_TICKS  = max(OVERSAMPLE, STOP_TICKS);
 
-    typedef logic [$clog2(MAX_TICKS)-1:0] tick_count_t;
-    typedef logic [$clog2(DATA_BITS)-1:0] data_count_t;
-    typedef logic [DATA_BITS-1:0]         data_t;
+    typedef logic [$clog2(MAX_TICKS)-1:0]     tick_count_t;
+    typedef logic [min1_clog2(DATA_BITS)-1:0] data_count_t;
+    typedef logic [DATA_BITS-1:0]             data_t;
+
+    localparam tick_count_t DATA_SAMPLE_TICK  = tick_count_t'(OVERSAMPLE   - 1);
+    localparam tick_count_t START_SAMPLE_TICK = tick_count_t'(OVERSAMPLE/2 - 1);
 
     state_t      state,      state_next;
     logic        rx_sync_1,  rx_sync_2;
@@ -118,7 +119,7 @@ module uart_rx #(
                 if (tick_count == DATA_SAMPLE_TICK) begin
                     tick_count_next           = 0;
                     data_out_next[data_count] = rx_sync_2;
-                    if (data_count == DATA_BITS-1)
+                    if (data_count == data_count_t'(DATA_BITS-1))
                         state_next = (PARITY_MODE == PARITY_NONE) ? STOP : PARITY;
                     else
                         data_count_next = data_count + 1;
@@ -141,7 +142,7 @@ module uart_rx #(
                     state_next      = IDLE;
                     error_tick_next = 1'b1;
                     done_tick_next  = 1'b1;
-                end else if (tick_count == STOP_TICKS-1) begin
+                end else if (tick_count == tick_count_t'(STOP_TICKS-1)) begin
                     state_next      = IDLE;
                     error_tick_next = parity_error(^{data_out, parity_bit});
                     done_tick_next  = 1'b1;

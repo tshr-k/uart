@@ -30,4 +30,18 @@ package uart_pkg;
             STOP_2:   return 2 * oversample;
         endcase
     endfunction
+
+    function automatic void validate_shared_params(
+        input int unsigned data_bits,
+        input stop_bits_t  stop_bits,
+        input parity_t     parity_mode
+    );
+        // validate parameters common to UART receiver and transmitter
+        assert (data_bits > 0)
+            else $fatal(1, "DATA_BITS must be > 0");
+        assert (stop_bits inside {STOP_1, STOP_1P5, STOP_2})
+            else $fatal(1, "STOP_BITS must be STOP_1, STOP_1P5 or STOP_2");
+        assert (parity_mode inside {PARITY_NONE, PARITY_ODD, PARITY_EVEN})
+            else $fatal(1, "PARITY_MODE must be PARITY_NONE, PARITY_ODD or PARITY_EVEN");
+    endfunction
 endpackage
