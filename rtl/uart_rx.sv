@@ -2,10 +2,10 @@ import uart_pkg::*;
 import utils_pkg::*;
 
 module uart_rx #(
-    parameter int unsigned DATA_BITS   = 8,
-    parameter stop_bits_t  STOP_BITS   = STOP_1,
-    parameter parity_t     PARITY_MODE = PARITY_NONE,
-    parameter int unsigned OVERSAMPLE  = 16  // ticks per bit
+    parameter int unsigned    DATA_BITS     = 8,
+    parameter stop_bits_cfg_t STOP_BITS_CFG = STOP_1,
+    parameter parity_cfg_t    PARITY_CFG    = PARITY_NONE,
+    parameter int unsigned    OVERSAMPLE    = 16  // ticks per bit
 ) (
     // a "tick" is asserted for exactly one clock cycle
     input  logic                 clk,
@@ -20,8 +20,8 @@ module uart_rx #(
     initial begin
         validate_shared_params(
             DATA_BITS,
-            STOP_BITS,
-            PARITY_MODE
+            STOP_BITS_CFG,
+            PARITY_CFG
         );
 
         assert (OVERSAMPLE > 0)
@@ -30,7 +30,7 @@ module uart_rx #(
             else $fatal(1, "OVERSAMPLE must be even");
     end
 
-    localparam int unsigned STOP_TICKS = stop_ticks(STOP_BITS, OVERSAMPLE);
+    localparam int unsigned STOP_TICKS = stop_ticks(STOP_BITS_CFG, OVERSAMPLE);
     localparam int unsigned MAX_TICKS  = max(OVERSAMPLE, STOP_TICKS);
 
     typedef logic [$clog2(MAX_TICKS)-1:0]     tick_count_t;
@@ -52,7 +52,7 @@ module uart_rx #(
     function automatic logic parity_error(
         input logic parity
     );
-        unique case (PARITY_MODE)
+        unique case (PARITY_CFG)
             PARITY_NONE: return 1'b0;
             PARITY_EVEN: return parity != 1'b0;
             PARITY_ODD:  return parity != 1'b1;
@@ -66,8 +66,8 @@ module uart_rx #(
             rx_sync_2  <= 1'b1;
             tick_count <= 0;
             data_count <= 0;
-            done_tick  <= 0;
-            error_tick <= 0;
+            done_tick  <= 1'b0;
+            error_tick <= 1'b0;
         end else begin
             // synchronise rx to avoid metastability
             rx_sync_1 <= rx;
@@ -75,25 +75,25 @@ module uart_rx #(
 
             // update state only on a tick
             if (en_tick) begin
-                state        <= state_next;
-                tick_count   <= tick_count_next;
-                data_count   <= data_count_next;
-                data_out     <= data_out_next;
-                parity_bit   <= parity_bit_next;
-                done_tick    <= done_tick_next;
-                error_tick   <= error_tick_next;
+                state      <= state_next;
+                tick_count <= tick_count_next;
+                data_count <= data_count_next;
+                data_out   <= data_out_next;
+                parity_bit <= parity_bit_next;
+                done_tick  <= done_tick_next;
+                error_tick <= error_tick_next;
             end
         end
     end
 
     always_comb begin
-        state_next        = state;
-        tick_count_next   = tick_count;
-        data_count_next   = data_count;
-        data_out_next     = data_out;
-        parity_bit_next   = parity_bit;
-        done_tick_next    = 1'b0;
-        error_tick_next   = 1'b0;
+        state_next      = state;
+        tick_count_next = tick_count;
+        data_count_next = data_count;
+        data_out_next   = data_out;
+        parity_bit_next = parity_bit;
+        done_tick_next  = 1'b0;
+        error_tick_next = 1'b0;
 
         unique case (state)
             IDLE:
@@ -120,7 +120,7 @@ module uart_rx #(
                     tick_count_next           = 0;
                     data_out_next[data_count] = rx_sync_2;
                     if (data_count == data_count_t'(DATA_BITS-1))
-                        state_next = (PARITY_MODE == PARITY_NONE) ? STOP : PARITY;
+                        state_next = (PARITY_CFG == PARITY_NONE) ? STOP : PARITY;
                     else
                         data_count_next = data_count + 1;
                 end else begin

@@ -27,8 +27,8 @@ module fifo #(
     ptr_t   rd_ptr;
     count_t count;
 
-    logic wr_ok;
-    logic pop_ok;
+    logic   wr_ok;
+    logic   pop_ok;
 
     function automatic ptr_t next_ptr(input ptr_t ptr);
         // advance ptr with wraparound
@@ -54,7 +54,7 @@ module fifo #(
                 rd_ptr <= next_ptr(rd_ptr);
             end
 
-            case ({wr_ok, pop_ok})
+            unique case ({wr_ok, pop_ok})
                 2'b10:   count <= count + 1;
                 2'b01:   count <= count - 1;
                 default: ;
@@ -66,6 +66,6 @@ module fifo #(
     assign full    = (count == count_t'(DEPTH));
     assign rd_data = data_array[rd_ptr];  // asynchronous read
 
-    assign wr_ok  = wr_en  && !full;  // rejected if full
-    assign pop_ok = pop_en && !empty;  // rejected if empty
+    assign wr_ok   = wr_en  && !full;  // rejected if full
+    assign pop_ok  = pop_en && !empty;  // rejected if empty
 endmodule
