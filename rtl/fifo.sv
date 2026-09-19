@@ -1,27 +1,25 @@
 module fifo #(
-    parameter int unsigned DATA_WIDTH = 8,
-    parameter int unsigned DEPTH      = 16
+    parameter type         data_t = logic [7:0],  // synthesizable and packed
+    parameter int unsigned DEPTH  = 16
 ) (
-    input  logic                  clk,
-    input  logic                  a_rst,
-    input  logic                  pop_en,
-    input  logic                  wr_en,
-    input  logic [DATA_WIDTH-1:0] wr_data,
+    input  logic  clk,
+    input  logic  a_rst,
+    input  logic  pop_en,
+    input  logic  wr_en,
+    input  data_t wr_data,
 
-    output logic                  empty,
-    output logic                  full,
-    output logic [DATA_WIDTH-1:0] rd_data
+    output logic  empty,
+    output logic  full,
+    output data_t rd_data
 );
     initial begin
-        // validate parameters
-        assert (DATA_WIDTH > 0)
-            else $fatal(1, "DATA_WIDTH must be > 0");
         assert (DEPTH > 0)
             else $fatal(1, "DEPTH must be > 0");
     end
 
-    typedef logic [DATA_WIDTH-1:0]      data_t;
-    typedef logic [$clog2(DEPTH)-1:0]   ptr_t;
+    localparam int unsigned PTR_WIDTH = (DEPTH > 1) ? $clog2(DEPTH) : 1;
+
+    typedef logic [PTR_WIDTH-1:0]       ptr_t;
     typedef logic [$clog2(DEPTH+1)-1:0] count_t;
 
     data_t  data_array [0:DEPTH-1];
@@ -59,15 +57,15 @@ module fifo #(
             case ({wr_ok, pop_ok})
                 2'b10:   count <= count + 1;
                 2'b01:   count <= count - 1;
-                default: count <= count;
+                default: ;
             endcase
         end
     end
 
     assign empty   = (count == 0);
     assign full    = (count == count_t'(DEPTH));
-    assign rd_data = data_array[rd_ptr];
+    assign rd_data = data_array[rd_ptr];  // asynchronous read
 
-    assign wr_ok  = wr_en  && !full;
-    assign pop_ok = pop_en && !empty;
+    assign wr_ok  = wr_en  && !full;  // rejected if full
+    assign pop_ok = pop_en && !empty;  // rejected if empty
 endmodule
