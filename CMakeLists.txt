@@ -24,6 +24,11 @@ add_executable(test_uart_rx
     tb/main.cpp
 )
 
+add_executable(test_uart_tx
+    # tb/uart_tx/uart_tx_tb.cpp
+    tb/main.cpp
+)
+
 verilate(
     test_fifo
     SOURCES
@@ -52,6 +57,17 @@ verilate(
     TRACE_FST
 )
 
+verilate(
+    test_uart_tx
+    SOURCES
+        rtl/utils_pkg.sv
+        rtl/uart_pkg.sv
+        rtl/uart_tx.sv
+    TOP_MODULE uart_tx
+    PREFIX Vuart_tx
+    TRACE_FST
+)
+
 target_include_directories(test_fifo PRIVATE
     tb
     tb/fifo
@@ -67,6 +83,11 @@ target_include_directories(test_uart_rx PRIVATE
     tb/uart_rx
 )
 
+target_include_directories(test_uart_tx PRIVATE
+    tb
+    tb/uart_tx
+)
+
 target_link_libraries(test_fifo PRIVATE
     Catch2::Catch2
 )
@@ -76,6 +97,10 @@ target_link_libraries(test_counter PRIVATE
 )
 
 target_link_libraries(test_uart_rx PRIVATE
+    Catch2::Catch2
+)
+
+target_link_libraries(test_uart_tx PRIVATE
     Catch2::Catch2
 )
 
