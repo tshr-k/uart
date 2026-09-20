@@ -7,6 +7,7 @@ module uart_tx #(
     parameter parity_cfg_t    PARITY_CFG    = PARITY_NONE
 ) (
     // a "tick" is asserted for exactly one clock cycle
+    // a frame is transmitted again if data_ready remains high after transmission and data_in is unchanged
     input  logic                 clk,
     input  logic                 a_rst,
     input  logic                 en_tick,  // asserted once per bit
@@ -15,10 +16,9 @@ module uart_tx #(
 
     output logic                 tx,
     output logic                 done_tick
-    // the frame is transmitted again if done_tick remains high after transmission and data_in is unchanged
 );
     initial begin
-        validate_shared_params(
+        validate_shared_uart_params(
             DATA_BITS,
             STOP_BITS_CFG,
             PARITY_CFG

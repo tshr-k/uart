@@ -1,4 +1,5 @@
 import utils_pkg::*;
+import tick_gen_pkg::*;
 
 // Bresenham-style fractional clock divider
 module tick_gen #(
@@ -11,12 +12,10 @@ module tick_gen #(
     output logic tick
 );
     initial begin
-        assert (CLK_FREQ_HZ > 0)
-            else $fatal(1, "CLK_FREQ_HZ must be > 0");
-        assert (TICK_FREQ_HZ > 0)
-            else $fatal(1, "TICK_FREQ_HZ must be > 0");
-        assert (TICK_FREQ_HZ < CLK_FREQ_HZ)
-            else $fatal(1, "TICK_FREQ_HZ must be < CLK_FREQ_HZ");
+        validate_tick_gen_params(
+            CLK_FREQ_HZ,
+            TICK_FREQ_HZ
+        );
     end
 
     typedef logic [min1_clog2(CLK_FREQ_HZ):0] acc_t;

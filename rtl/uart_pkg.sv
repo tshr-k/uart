@@ -31,7 +31,7 @@ package uart_pkg;
         endcase
     endfunction
 
-    function automatic void validate_shared_params(
+    function automatic void validate_shared_uart_params(
         input int unsigned    data_bits,
         input stop_bits_cfg_t stop_bits_cfg,
         input parity_cfg_t    parity_cfg
@@ -43,5 +43,12 @@ package uart_pkg;
             else $fatal(1, "STOP_BITS_CFG must be STOP_1, STOP_1P5 or STOP_2");
         assert (parity_cfg inside {PARITY_NONE, PARITY_ODD, PARITY_EVEN})
             else $fatal(1, "PARITY_CFG must be PARITY_NONE, PARITY_ODD or PARITY_EVEN");
+    endfunction
+
+    function automatic void validate_oversample_param(input int unsigned oversample);
+        assert (oversample > 0)
+            else $fatal(1, "OVERSAMPLE must be > 0");
+        assert (oversample % 2 == 0)
+            else $fatal(1, "OVERSAMPLE must be even");
     endfunction
 endpackage

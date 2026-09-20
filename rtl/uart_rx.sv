@@ -18,16 +18,13 @@ module uart_rx #(
     output logic                 error_tick  // parity or frame error
 );
     initial begin
-        validate_shared_params(
+        validate_shared_uart_params(
             DATA_BITS,
             STOP_BITS_CFG,
             PARITY_CFG
         );
 
-        assert (OVERSAMPLE > 0)
-            else $fatal(1, "OVERSAMPLE must be > 0");
-        assert (OVERSAMPLE % 2 == 0)
-            else $fatal(1, "OVERSAMPLE must be even");
+        validate_oversample_param(OVERSAMPLE);
     end
 
     localparam int unsigned STOP_TICKS = stop_ticks(STOP_BITS_CFG, OVERSAMPLE);
