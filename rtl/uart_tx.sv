@@ -95,7 +95,7 @@ module uart_tx #(
                 bit_count_next = bit_count + 1;
 
                 if (bit_count == bit_count_t'(STOP_BITS-1)) begin
-                    state_next     = IDLE;
+                    state_next     = data_ready ? START : IDLE;
                     done_tick_next = 1'b1;
                 end
             end

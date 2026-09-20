@@ -140,7 +140,7 @@ module uart_rx #(
                     error_tick_next = 1'b1;
                     done_tick_next  = 1'b1;
                 end else if (tick_count == tick_count_t'(STOP_TICKS-1)) begin
-                    state_next      = IDLE;
+                    state_next      = (rx == 1'b0) ? START : IDLE;
                     error_tick_next = parity_error(^{data_out, parity_bit});
                     done_tick_next  = 1'b1;
                 end else begin
