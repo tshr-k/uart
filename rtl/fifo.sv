@@ -1,24 +1,25 @@
 import utils_pkg::*;
 
 module fifo #(
-    parameter type         data_t = logic [7:0],  // synthesizable and packed
+    parameter type         DATA_T = logic [7:0],  // synthesizable and packed
     parameter int unsigned DEPTH  = 16
 ) (
     input  logic  clk,
     input  logic  a_rst,
     input  logic  pop_en,
     input  logic  wr_en,
-    input  data_t wr_data,
+    input  DATA_T wr_data,
 
     output logic  empty,
     output logic  full,
-    output data_t rd_data
+    output DATA_T rd_data
 );
     initial begin
         assert (DEPTH > 0)
             else $fatal(1, "DEPTH must be > 0");
     end
 
+    typedef DATA_T data_t;
     typedef logic [min1_clog2(DEPTH)-1:0] ptr_t;
     typedef logic [$clog2(DEPTH+1)-1:0]   count_t;
 
