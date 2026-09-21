@@ -45,23 +45,24 @@ module uart #(
 
     localparam int unsigned TICK_FREQ_HZ = OVERSAMPLE * BAUD_RATE_HZ;
 
+    typedef logic [$clog2(OVERSAMPLE)-1:0] oversample_tick_count_t;
     typedef logic [DATA_BITS-1:0] data_t;
     typedef struct packed {
         data_t data;
         logic  error;
     } rx_result_t;
 
-    logic                          oversample_tick;
-    logic [$clog2(OVERSAMPLE)-1:0] oversample_tick_count;
-    logic                          bit_tick;
+    logic                   oversample_tick;
+    oversample_tick_count_t oversample_tick_count;
+    logic                   bit_tick;
 
-    data_t                         tx_data_buffered;
-    rx_result_t                    rx_result_to_buffer;
-    rx_result_t                    rx_result;
-    logic                          tx_done_tick;
-    logic                          rx_done_tick;
-    logic                          tx_buffer_empty;
-    logic                          rx_buffer_full;
+    data_t                  tx_data_buffered;
+    rx_result_t             rx_result_to_buffer;
+    rx_result_t             rx_result;
+    logic                   tx_done_tick;
+    logic                   rx_done_tick;
+    logic                   tx_buffer_empty;
+    logic                   rx_buffer_full;
 
     tick_gen #(
         .CLK_FREQ_HZ(CLK_FREQ_HZ),
@@ -144,7 +145,9 @@ module uart #(
         .error_tick(rx_result_to_buffer.error)
     );
 
-    assign bit_tick         = oversample_tick && (oversample_tick_count == OVERSAMPLE-1);
+    assign bit_tick         = oversample_tick &&
+                              (oversample_tick_count ==
+                              oversample_tick_count_t'(OVERSAMPLE-1));
     assign rx_data          = rx_result.data;
     assign rx_error         = rx_result.error;
     assign rx_overflow_tick = rx_done_tick && rx_buffer_full;
