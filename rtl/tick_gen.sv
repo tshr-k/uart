@@ -20,8 +20,8 @@ module tick_gen #(
 
     typedef logic [min1_clog2(CLK_FREQ_HZ):0] acc_t;
 
-    acc_t acc,  next_acc;
-    logic       next_tick;
+    acc_t acc,  acc_next;
+    logic       tick_next;
     acc_t sum;
 
     always_ff @(posedge clk or posedge a_rst) begin
@@ -29,8 +29,8 @@ module tick_gen #(
             acc  <= '0;
             tick <= 1'b0;
         end else begin
-            acc  <= next_acc;
-            tick <= next_tick;
+            acc  <= acc_next;
+            tick <= tick_next;
         end
     end
 
@@ -38,11 +38,11 @@ module tick_gen #(
         sum = acc + acc_t'(TICK_FREQ_HZ);
 
         if (sum >= acc_t'(CLK_FREQ_HZ)) begin
-            next_acc  = sum - acc_t'(CLK_FREQ_HZ);
-            next_tick = 1'b1;
+            acc_next  = sum - acc_t'(CLK_FREQ_HZ);
+            tick_next = 1'b1;
         end else begin
-            next_acc  = sum;
-            next_tick = 1'b0;
+            acc_next  = sum;
+            tick_next = 1'b0;
         end
     end
 endmodule
