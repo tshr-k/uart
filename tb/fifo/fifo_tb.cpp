@@ -20,11 +20,11 @@ void DutFixture<Vfifo>::dut_reset() {
 
 using FifoFixture = DutFixture<Vfifo>;
 
-const std::string wave_path = "traces/fifo/fifo.fst";
+const std::string wave_dir = "traces/fifo";
 
 
 TEST_CASE_METHOD(FifoFixture, "FIFO reset works", "[fifo]") {
-    // open_trace(wave_path);
+    // open_trace(wave_dir, "fifo_reset");
     
     dut_reset();
     CHECK(dut->empty);
@@ -36,7 +36,7 @@ TEST_CASE_METHOD(FifoFixture, "FIFO reset works", "[fifo]") {
 }
 
 TEST_CASE_METHOD(FifoFixture, "FIFO write and read work", "[fifo]") {
-    // open_trace(wave_path);
+    // open_trace(wave_dir, "fifo_write_read");
 
     dut_reset();
 
@@ -75,7 +75,7 @@ TEST_CASE_METHOD(FifoFixture, "FIFO write and read work", "[fifo]") {
 }
 
 TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") {
-    // open_trace(wave_path);
+    // open_trace(wave_dir, "fifo_match_ref");
 
     dut_reset();
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <format>
 #include <stdexcept>
 #include <string_view>
 #include <memory>
@@ -109,7 +110,7 @@ struct DutFixture {
         }
     }
 
-    void open_trace(std::string_view wave_path) {
+    void open_trace(std::string_view wave_dir, std::string_view wave_name) {
         if (trace_open_) {
             throw std::logic_error("trace already open");
         }
@@ -118,7 +119,7 @@ struct DutFixture {
         dut->trace(trace_.get(), 99);
         sim.set_trace(trace_.get());
         
-        trace_->open(wave_path.data());
+        trace_->open(std::format("{}/{}.fst", wave_dir, wave_name).c_str());
         trace_open_ = true;
     }
 
