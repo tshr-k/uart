@@ -63,7 +63,7 @@ add_verilator_test(uart_rx FALSE
     uart_pkg
     utils_pkg
 )
-add_verilator_test(uart_tx FALSE
+add_verilator_test(uart_tx TRUE
     uart_pkg
     utils_pkg
 )
