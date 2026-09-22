@@ -19,10 +19,14 @@ const int ticks_pattern_period = clk_freq_hz / std::gcd(clk_freq_hz, tick_freq_h
 template<>
 void DutFixture<Vtick_gen>::dut_reset() {
     dut->clk = 0;
+    dut->a_rst = 0;
+    sim.eval_dump();
+
     dut->a_rst = 1;
     sim.eval_dump();
     
     dut->a_rst = 0;
+    sim.eval_dump();
 }
 
 using TickGenFixture = DutFixture<Vtick_gen>;

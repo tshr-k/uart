@@ -6,7 +6,7 @@
 #include <queue>
 
 
-// T is std::uint*_t
+// T is e.g. std::uint*_t
 template<typename T>
 class FifoRef {
 public:

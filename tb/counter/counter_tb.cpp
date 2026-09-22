@@ -10,11 +10,16 @@
 template<>
 void DutFixture<Vcounter>::dut_reset() {
     dut->clk = 0;
-    dut->a_rst = 1;
-    sim.eval_dump();
-    
     dut->a_rst = 0;
     dut->en = 1;
+    sim.eval_dump();
+
+    dut->a_rst = 1;
+    sim.eval_dump();
+
+    dut->a_rst = 0;
+    sim.eval_dump();
+    
 }
 
 using CounterFixture = DutFixture<Vcounter>;
