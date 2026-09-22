@@ -55,7 +55,7 @@ module fifo #(
                 rd_ptr <= next_ptr(rd_ptr);
             end
 
-            unique case ({wr_ok, pop_ok})
+            case ({wr_ok, pop_ok})
                 2'b10:   count <= count + 1;
                 2'b01:   count <= count - 1;
                 default: ;
