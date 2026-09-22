@@ -83,7 +83,7 @@ TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") 
 
     dut_reset();
 
-    FifoRef<std::uint8_t> ref{16};
+    FifoRef<std::uint8_t> ref {16};
 
     // both RTL model and C++ reference model
     auto lockstep_check = [&]() {
@@ -139,4 +139,52 @@ TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") 
     lockstep_cycle(false, 0, true);  // read while empty is ignored
     CHECK(dut->empty);
     CHECK_FALSE(dut->full);
+}
+
+TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model with random operations", "[fifo]") {
+    // open_trace(wave_dir, "fifo_match_ref_random");
+
+    dut_reset();
+
+    FifoRef<std::uint8_t> ref {16};
+
+    // both RTL model and C++ reference model
+    auto lockstep_check = [&]() {
+        CHECK(static_cast<bool>(dut->empty) == ref.empty());
+        CHECK(static_cast<bool>(dut->full) == ref.full());
+
+        std::uint8_t expected_data = 0;
+        if (ref.try_read(expected_data)) {
+            CHECK(dut->rd_data == expected_data);
+        }
+    };
+
+    auto lockstep_cycle = [&](bool wr_en, std::uint8_t wr_data, bool pop_en) {
+        dut->wr_en = wr_en;
+        dut->wr_data = wr_data;
+        dut->pop_en = pop_en;
+        sim.eval_dump();
+        lockstep_check();
+
+        const bool wr_ok = wr_en && !ref.full();
+        const bool pop_ok = pop_en && !ref.empty();
+        if (pop_ok) {
+            std::uint8_t data = 0;
+            REQUIRE(ref.try_pop(data));
+        }
+        if (wr_ok) {
+            REQUIRE(ref.try_write(wr_data));
+        }
+
+        sim.clk.cycle();
+        lockstep_check();
+    };
+
+    for (int i = 0; i < 100; ++i) {
+        bool wr_en = rand() % 2;
+        std::uint8_t wr_data = static_cast<std::uint8_t>(rand() % 256);
+        bool pop_en = rand() % 2;
+
+        lockstep_cycle(wr_en, wr_data, pop_en);
+    }
 }
