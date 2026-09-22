@@ -19,11 +19,11 @@ package uart_pkg;
         STOP
     } state_t;
 
+    // Convert stop_bits_cfg to ticks
     function automatic int unsigned stop_ticks(
         input stop_bits_cfg_t stop_bits_cfg,
         input int unsigned    oversample  // ticks per bit
     );
-        // convert stop_bits_cfg to ticks
         unique case (stop_bits_cfg)
             STOP_1:   return 1 * oversample;
             STOP_1P5: return 3 * oversample / 2;
@@ -31,12 +31,12 @@ package uart_pkg;
         endcase
     endfunction
 
+    // Validate parameters common to UART receiver and transmitter
     function automatic void validate_shared_uart_params(
         input int unsigned    data_bits,
         input stop_bits_cfg_t stop_bits_cfg,
         input parity_cfg_t    parity_cfg
     );
-        // validate parameters common to UART receiver and transmitter
         assert (data_bits > 0)
             else $fatal(1, "DATA_BITS must be > 0");
         assert (stop_bits_cfg inside {STOP_1, STOP_1P5, STOP_2})

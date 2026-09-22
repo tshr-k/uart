@@ -71,7 +71,7 @@ module uart #(
         .clk,
         .a_rst,
 
-        .tick(oversample_tick)
+        .tick (oversample_tick)
     );
 
     counter #(
@@ -79,9 +79,9 @@ module uart #(
     ) oversample_tick_counter (
         .clk,
         .a_rst,
-        .en(oversample_tick),
+        .en    (oversample_tick),
 
-        .count(oversample_tick_count)
+        .count (oversample_tick_count)
     );
 
     fifo #(
@@ -90,13 +90,13 @@ module uart #(
     ) tx_buffer (
         .clk,
         .a_rst,
-        .pop_en(tx_done_tick),
-        .wr_en(tx_wr_en),
-        .wr_data(tx_data),
+        .pop_en  (tx_done_tick),
+        .wr_en   (tx_wr_en),
+        .wr_data (tx_data),
 
-        .empty(tx_buffer_empty),
-        .full(tx_buffer_full),
-        .rd_data(tx_data_buffered)
+        .empty   (tx_buffer_empty),
+        .full    (tx_buffer_full),
+        .rd_data (tx_data_buffered)
     );
 
     uart_tx #(
@@ -106,12 +106,12 @@ module uart #(
     ) transmitter (
         .clk,
         .a_rst,
-        .en_tick(bit_tick),
-        .data_ready(!tx_buffer_empty),
-        .data_in(tx_data_buffered),
+        .en_tick    (bit_tick),
+        .data_ready (!tx_buffer_empty),
+        .data_in    (tx_data_buffered),
 
         .tx,
-        .done_tick(tx_done_tick)
+        .done_tick  (tx_done_tick)
     );
 
     fifo #(
@@ -120,13 +120,13 @@ module uart #(
     ) rx_buffer (
         .clk,
         .a_rst,
-        .pop_en(rx_pop_en),
-        .wr_en(rx_done_tick),
-        .wr_data(rx_result_to_buffer),
+        .pop_en  (rx_pop_en),
+        .wr_en   (rx_done_tick),
+        .wr_data (rx_result_to_buffer),
 
-        .empty(rx_buffer_empty),
-        .full(rx_buffer_full),
-        .rd_data(rx_result)
+        .empty   (rx_buffer_empty),
+        .full    (rx_buffer_full),
+        .rd_data (rx_result)
     );
 
     uart_rx #(
@@ -137,12 +137,12 @@ module uart #(
     ) receiver (
         .clk,
         .a_rst,
-        .en_tick(oversample_tick),
+        .en_tick    (oversample_tick),
         .rx,
 
-        .data_out(rx_result_to_buffer.data),
-        .done_tick(rx_done_tick),
-        .error_tick(rx_result_to_buffer.error)
+        .data_out   (rx_result_to_buffer.data),
+        .done_tick  (rx_done_tick),
+        .error_tick (rx_result_to_buffer.error)
     );
 
     assign bit_tick         = oversample_tick &&

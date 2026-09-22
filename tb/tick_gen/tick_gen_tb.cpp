@@ -74,7 +74,7 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator is never off by 1 or more ticks
     open_trace(wave_dir, "tick_gen_accuracy");
     
     const double ticks_per_cycle = static_cast<double>(tick_freq_hz) / clk_freq_hz;
-    double ref_ticks = 0;
+    double ticks_ref = 0;
     int ticks = 0;
 
     dut_reset();
@@ -84,9 +84,9 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator is never off by 1 or more ticks
             if (dut->tick) {
                 ++ticks;
             }
-            ref_ticks += ticks_per_cycle;
+            ticks_ref += ticks_per_cycle;
             
-            CHECK(std::abs(ref_ticks - ticks) < 1.0);
+            CHECK(std::abs(ticks_ref - ticks) < 1.0);
         }
     }
 }
