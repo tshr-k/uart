@@ -15,7 +15,8 @@ module uart_rx #(
 
     output logic [DATA_BITS-1:0] data_out,
     output logic                 done_tick,  // asserted even on error
-    output logic                 error_tick  // parity or frame error
+    output logic                 error  // sticky frame or parity error status
+    // asserted as soon as an error is detected; resets to 0 after done_tick
 );
     initial begin
         validate_shared_uart_params(
@@ -44,7 +45,7 @@ module uart_rx #(
     data_t                   data_out_next;
     logic        parity_bit, parity_bit_next;
     logic                    done_tick_next;
-    logic                    error_tick_next;
+    logic                    error_next;
 
     function automatic logic parity_error(
         input logic parity
@@ -64,7 +65,7 @@ module uart_rx #(
             tick_count <= '0;
             data_count <= '0;
             done_tick  <= 1'b0;
-            error_tick <= 1'b0;
+            error      <= 1'b0;
         end else begin
             // synchronise rx to avoid metastability
             rx_sync_1 <= rx;
@@ -78,7 +79,7 @@ module uart_rx #(
                 data_out   <= data_out_next;
                 parity_bit <= parity_bit_next;
                 done_tick  <= done_tick_next;
-                error_tick <= error_tick_next;
+                error      <= error_next;
             end
         end
     end
@@ -90,7 +91,7 @@ module uart_rx #(
         data_out_next   = data_out;
         parity_bit_next = parity_bit;
         done_tick_next  = 1'b0;
-        error_tick_next = 1'b0;
+        error_next      = 1'b0;
 
         unique case (state)
             IDLE:
@@ -134,16 +135,17 @@ module uart_rx #(
                 end
 
             STOP:
-                // only validate the first stop bit
-                if (tick_count == DATA_SAMPLE_TICK && rx_sync_2 != 1'b1) begin
-                    state_next      = IDLE;
-                    error_tick_next = 1'b1;
-                    done_tick_next  = 1'b1;
-                end else if (tick_count == tick_count_t'(STOP_TICKS-1)) begin
-                    state_next      = (rx == 1'b0) ? START : IDLE;
-                    error_tick_next = parity_error(^{data_out, parity_bit});
+                if (tick_count == tick_count_t'(STOP_TICKS-1)) begin
+                    state_next = (rx_sync_2 == 1'b0) ? START : IDLE;
+                    error_next = error || parity_error(^{data_out, parity_bit});  // frame or parity error
+                    // any errors are cleared on the first enable tick of a START or IDLE state
                     done_tick_next  = 1'b1;
                 end else begin
+                    // only validate the first stop bit
+                    if (tick_count == DATA_SAMPLE_TICK && rx_sync_2 != 1'b1)
+                        error_next = 1'b1;  // don't abort, just report the error
+                    else
+                        error_next = error;  // remember whether the first stop bit was invalid
                     tick_count_next = tick_count + 1;
                 end
         endcase
