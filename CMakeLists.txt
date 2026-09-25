@@ -59,7 +59,7 @@ add_verilator_test(tick_gen TRUE
 add_verilator_test(fifo TRUE
     utils_pkg
 )
-add_verilator_test(uart_rx FALSE
+add_verilator_test(uart_rx TRUE
     uart_pkg
     utils_pkg
 )

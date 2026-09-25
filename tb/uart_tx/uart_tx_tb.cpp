@@ -12,9 +12,10 @@
 // specialise reset function for uart_tx module
 template<>
 void DutFixture<Vuart_tx>::dut_reset() {
+    // enable for testing so that state machine can progress on each clock edge
+    dut->en_tick = 1;
     dut->clk = 0;
     dut->a_rst = 0;
-    dut->en_tick = 0;
     dut->data_ready = 0;
     sim.eval_dump();
 
@@ -30,25 +31,26 @@ using UartTxFixture = DutFixture<Vuart_tx>;
 const std::string wave_dir = "traces/uart_tx";
 
 
-TEST_CASE_METHOD(UartTxFixture, "UART transmitter reset works", "[uart_tx]") {
-    open_trace(wave_dir, "uart_tx_reset");
+TEST_CASE_METHOD(UartTxFixture, "UART transmitter reset and enable work", "[uart_tx]") {
+    // open_trace(wave_dir, "uart_tx_reset");
     
     dut_reset();
     CHECK(dut->tx == 1);
     CHECK(dut->done_tick == 0);
 
-    sim.clk.cycles(5);  // no en_tick
+    dut->en_tick = 0;  // disable transmission
+    sim.eval_dump();
+    sim.clk.cycles(2);
     CHECK(dut->tx == 1);
     CHECK(dut->done_tick == 0);
 }
 
 TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits a frame correctly", "[uart_tx]") {
-    // open_trace(wave_dir, "uart_tx_transmit");
+    open_trace(wave_dir, "uart_tx_transmit");
 
-    UartTxRef ref {};
+    UartTxRef uart_tx_ref {};
 
     dut_reset();
-    dut->en_tick = 1; // leave high for testing so that each clock edge is used
    
     // send a byte of data
     std::uint8_t data_to_send = 0xA5;
@@ -61,13 +63,13 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits a frame correctly", 
 
     // collect transmitted bits for the length of a frame
     std::vector<int> transmitted_bits;
-    for (int i = 0; i < ref.get_frame_length(); ++i) {
+    for (int i = 0; i < uart_tx_ref.get_frame_length(); ++i) {
         sim.clk.cycle();
         transmitted_bits.push_back(dut->tx);
     }
     
     CHECK(dut->done_tick == 1);
-    CHECK(transmitted_bits == ref.get_frame(data_to_send));
+    CHECK(transmitted_bits == uart_tx_ref.get_frame(data_to_send));
 
     for (int i = 0; i < 5; ++i) {
         sim.clk.cycle();
