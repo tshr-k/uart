@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,37 @@ using UartRxFixture = DutFixture<Vuart_rx>;
 
 const std::string wave_dir = "traces/uart_rx";
 
+void check_received_frame(
+    UartRxFixture& fixture,
+    UartTxRef& uart_tx_ref,
+    std::uint8_t data,
+    bool parity_error = false,
+    bool frame_error = false
+) {
+    fixture.dut_reset();
+    auto frame = uart_tx_ref.get_frame(data, parity_error, frame_error);
+    bool saw_done = false;
+    bool received_error = false;
+
+    for (int bit : frame) {
+        for (int i = 0; i < 16; ++i) {
+            fixture.dut->rx = bit;
+            fixture.sim.clk.cycle();
+            if (fixture.dut->done_tick == 1) {
+                saw_done = true;
+                received_error = fixture.dut->error;
+            }
+        }
+    }
+
+    fixture.dut->rx = 1;
+    fixture.sim.clk.cycles(4);
+
+    CHECK(saw_done);
+    CHECK(fixture.dut->data_out == data);
+    CHECK(received_error == (parity_error || frame_error));
+}
+
 
 TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
     // open_trace(wave_dir, "uart_rx_reset");
@@ -40,12 +72,12 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
     dut_reset();
     CHECK(dut->data_out == 0xFF);
     CHECK(dut->done_tick == 0);
-    CHECK(dut->error_tick == 0);
+    CHECK(dut->error == 0);
 
     sim.clk.cycles(99);  // rx is idle, so no change should occur
     CHECK(dut->data_out == 0xFF);
     CHECK(dut->done_tick == 0);
-    CHECK(dut->error_tick == 0);
+    CHECK(dut->error == 0);
 }
 
 TEST_CASE_METHOD(UartRxFixture, "UART receiver enable works", "[uart_rx]") {
@@ -61,35 +93,33 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver enable works", "[uart_rx]") {
         sim.clk.cycle();
         CHECK(dut->data_out == 0xFF);
         CHECK(dut->done_tick == 0);
-        CHECK(dut->error_tick == 0);
+        CHECK(dut->error == 0);
     }
 }
 
-TEST_CASE_METHOD(UartRxFixture, "", "[uart_rx]") {
+TEST_CASE_METHOD(UartRxFixture, "UART receiver detects frame errors", "[uart_rx]") {
     open_trace(wave_dir, "uart_rx_receive");
 
-    UartTxRef uart_tx_ref {};
+    UartTxRef uart_tx_ref {8, 1, parity_cfg_t::PARITY_EVEN};
 
-    dut_reset();
+    check_received_frame(*this, uart_tx_ref, 0xA5, true, false);
+    check_received_frame(*this, uart_tx_ref, 0xA5, false, true);
+    check_received_frame(*this, uart_tx_ref, 0xA5, true, true);
+}
 
-   
-    // receive a frame of data
-    std::vector<int> frame = uart_tx_ref.get_frame(0xA5);
-    for (int bit_num = 0; bit_num < frame.size(); ++bit_num) {
-        for (int i = 0; i < 16; ++i) {  // 16 ticks per bit
-            dut->rx = frame[bit_num];
-            sim.clk.cycle();
-        }
+TEST_CASE_METHOD(UartRxFixture, "UART receiver receives random frames", "[uart_rx]") {
+    UartTxRef uart_tx_ref {8, 1, parity_cfg_t::PARITY_EVEN};
+    std::mt19937 random{0xA17};
 
-        if (dut->done_tick == 1) {
-            CHECK(dut->data_out == 0xA5);
-            CHECK(bit_num == frame.size() - 1);  // must be last bit of frame
-            CHECK(dut->error_tick == 0);
-        }
+    for (int i = 0; i < 100; ++i) {
+        const bool parity_error = random() % 2;
+        const bool frame_error = random() % 2;
+        check_received_frame(
+            *this,
+            uart_tx_ref,
+            static_cast<std::uint8_t>(random()),
+            parity_error,
+            frame_error
+        );
     }
-
-    dut->rx = 1;  // return to idle state
-    sim.clk.cycle();
-    CHECK(dut->data_out == 0xA5);
-    CHECK(dut->done_tick == 0);
 }

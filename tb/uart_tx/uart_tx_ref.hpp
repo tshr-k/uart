@@ -15,7 +15,11 @@ public:
     UartTxRef(int data_bits, int stop_bits, parity_cfg_t parity_cfg)
         : data_bits_{data_bits}, stop_bits_{stop_bits}, parity_cfg_{parity_cfg} {}
 
-    std::vector<int> get_frame(std::uint8_t data) {
+    std::vector<int> get_frame(
+        std::uint8_t data,
+        bool parity_error = false,
+        bool frame_error = false
+    ) {
         std::vector<int> frame;
 
         // start bit
@@ -33,15 +37,15 @@ public:
                 parity_bit ^= (data >> i) & 0x01;
             }
 
-            frame.push_back(parity_cfg_ == parity_cfg_t::PARITY_EVEN
+            int parity_value = parity_cfg_ == parity_cfg_t::PARITY_EVEN
                 ? parity_bit
-                : !parity_bit
-            );
+                : !parity_bit;
+            frame.push_back(parity_error ? !parity_value : parity_value);
         }
 
         // stop bits
         for (int i = 0; i < stop_bits_; ++i) {
-            frame.push_back(1);
+            frame.push_back((frame_error && i == 0) ? 0 : 1);
         }
 
         return frame;
@@ -58,5 +62,5 @@ public:
 private:
     int data_bits_ = 8;
     int stop_bits_ = 1;  // tx doesn't support 1.5 stop bits
-    parity_cfg_t parity_cfg_ = parity_cfg_t::PARITY_NONE;
+    parity_cfg_t parity_cfg_ = parity_cfg_t::PARITY_EVEN;
 };

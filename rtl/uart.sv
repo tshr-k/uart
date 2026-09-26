@@ -6,7 +6,7 @@ module uart #(
     parameter int unsigned    BAUD_RATE_HZ    = 115_200,
     parameter int unsigned    DATA_BITS       = 8,
     parameter stop_bits_cfg_t STOP_BITS_CFG   = STOP_1,
-    parameter parity_cfg_t    PARITY_CFG      = PARITY_NONE,
+    parameter parity_cfg_t    PARITY_CFG      = PARITY_EVEN,
     parameter int unsigned    OVERSAMPLE      = 16,  // ticks per bit, for receiver
     parameter int unsigned    RX_BUFFER_DEPTH = 16,
     parameter int unsigned    TX_BUFFER_DEPTH = 16
@@ -142,7 +142,7 @@ module uart #(
 
         .data_out   (rx_result_to_buffer.data),
         .done_tick  (rx_done_tick),
-        .error_tick (rx_result_to_buffer.error)
+        .error      (rx_result_to_buffer.error)
     );
 
     assign bit_tick         = oversample_tick &&

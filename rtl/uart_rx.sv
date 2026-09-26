@@ -4,7 +4,7 @@ import utils_pkg::*;
 module uart_rx #(
     parameter int unsigned    DATA_BITS     = 8,
     parameter stop_bits_cfg_t STOP_BITS_CFG = STOP_1,
-    parameter parity_cfg_t    PARITY_CFG    = PARITY_NONE,
+    parameter parity_cfg_t    PARITY_CFG    = PARITY_EVEN,
     parameter int unsigned    OVERSAMPLE    = 16  // ticks per bit
 ) (
     // a "tick" is asserted for exactly one clock cycle
@@ -16,7 +16,7 @@ module uart_rx #(
     output logic [DATA_BITS-1:0] data_out,
     output logic                 done_tick,  // asserted even on error
     output logic                 error  // sticky frame or parity error status
-    // asserted as soon as an error is detected; resets to 0 after done_tick
+    // asserted as soon as an error is detected; cleared on the tick after done_tick
 );
     initial begin
         validate_shared_uart_params(
@@ -46,6 +46,9 @@ module uart_rx #(
     logic        parity_bit, parity_bit_next;
     logic                    done_tick_next;
     logic                    error_next;
+    
+    logic        first_stop_bit_invalid_now;
+    logic        parity_bit_invalid_now;
 
     function automatic logic parity_error(
         input logic parity
@@ -84,6 +87,15 @@ module uart_rx #(
         end
     end
 
+    assign parity_bit_invalid_now = (state == PARITY)
+                                 && (tick_count == DATA_SAMPLE_TICK)
+                                 && parity_error(^{data_out, rx_sync_2});
+    
+    // only validate the first stop bit
+    assign first_stop_bit_invalid_now = (state == STOP)
+                                      && (tick_count == DATA_SAMPLE_TICK)
+                                      && (rx_sync_2 != 1'b1);
+
     always_comb begin
         state_next      = state;
         tick_count_next = tick_count;
@@ -91,19 +103,22 @@ module uart_rx #(
         data_out_next   = data_out;
         parity_bit_next = parity_bit;
         done_tick_next  = 1'b0;
-        error_next      = 1'b0;
+        error_next      = error || parity_bit_invalid_now || first_stop_bit_invalid_now;
 
         unique case (state)
-            IDLE:
+            IDLE: begin
+                error_next = 1'b0;
                 if (rx_sync_2 == 1'b0) begin
                     state_next      = START;
                     tick_count_next = '0;
                 end
+            end
 
-            START:
+            START: begin
+                error_next = 1'b0;
                 if (tick_count == START_SAMPLE_TICK) begin
                     if (rx_sync_2 != 1'b0) begin
-                        state_next = IDLE;
+                        state_next = IDLE;  // not an error, assume it was a random bit flip and return to IDLE
                     end else begin
                         state_next      = DATA;
                         tick_count_next = '0;
@@ -112,6 +127,7 @@ module uart_rx #(
                 end else begin
                     tick_count_next = tick_count + 1;
                 end
+            end
 
             DATA:
                 if (tick_count == DATA_SAMPLE_TICK) begin
@@ -134,20 +150,14 @@ module uart_rx #(
                     tick_count_next = tick_count + 1;
                 end
 
-            STOP:
+            STOP: begin
                 if (tick_count == tick_count_t'(STOP_TICKS-1)) begin
                     state_next = (rx_sync_2 == 1'b0) ? START : IDLE;
-                    error_next = error || parity_error(^{data_out, parity_bit});  // frame or parity error
-                    // any errors are cleared on the first enable tick of a START or IDLE state
                     done_tick_next  = 1'b1;
                 end else begin
-                    // only validate the first stop bit
-                    if (tick_count == DATA_SAMPLE_TICK && rx_sync_2 != 1'b1)
-                        error_next = 1'b1;  // don't abort, just report the error
-                    else
-                        error_next = error;  // remember whether the first stop bit was invalid
                     tick_count_next = tick_count + 1;
                 end
+            end
         endcase
     end
 endmodule

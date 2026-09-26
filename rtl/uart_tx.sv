@@ -4,7 +4,7 @@ import utils_pkg::*;
 module uart_tx #(
     parameter int unsigned    DATA_BITS     = 8,
     parameter stop_bits_cfg_t STOP_BITS_CFG = STOP_1,
-    parameter parity_cfg_t    PARITY_CFG    = PARITY_NONE
+    parameter parity_cfg_t    PARITY_CFG    = PARITY_EVEN
 ) (
     // a "tick" is asserted for exactly one clock cycle
     // a frame is transmitted again if data_ready remains high after transmission and data_in is unchanged

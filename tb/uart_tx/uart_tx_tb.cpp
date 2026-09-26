@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,29 @@ using UartTxFixture = DutFixture<Vuart_tx>;
 
 const std::string wave_dir = "traces/uart_tx";
 
+void check_transmitted_frame(
+    UartTxFixture& fixture,
+    UartTxRef& uart_tx_ref,
+    std::uint8_t data
+) {
+    fixture.dut_reset();
+    fixture.dut->data_in = data;
+    fixture.dut->data_ready = 1;
+    fixture.sim.clk.cycle();
+
+    fixture.dut->data_ready = 0;
+    fixture.sim.eval_dump();
+
+    std::vector<int> transmitted_bits;
+    for (std::size_t i = 0; i < uart_tx_ref.get_frame_length(); ++i) {
+        fixture.sim.clk.cycle();
+        transmitted_bits.push_back(fixture.dut->tx);
+    }
+
+    CHECK(fixture.dut->done_tick == 1);
+    CHECK(transmitted_bits == uart_tx_ref.get_frame(data));
+}
+
 
 TEST_CASE_METHOD(UartTxFixture, "UART transmitter reset and enable work", "[uart_tx]") {
     // open_trace(wave_dir, "uart_tx_reset");
@@ -50,29 +74,19 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits a frame correctly", 
 
     UartTxRef uart_tx_ref {};
 
-    dut_reset();
-   
-    // send a byte of data
-    std::uint8_t data_to_send = 0xA5;
-    dut->data_in = data_to_send;
-    dut->data_ready = 1;
-    sim.clk.cycle();  // enter START state
-
-    dut->data_ready = 0;  // don't send this frame twice
-    sim.eval_dump();
-
-    // collect transmitted bits for the length of a frame
-    std::vector<int> transmitted_bits;
-    for (int i = 0; i < uart_tx_ref.get_frame_length(); ++i) {
-        sim.clk.cycle();
-        transmitted_bits.push_back(dut->tx);
-    }
-    
-    CHECK(dut->done_tick == 1);
-    CHECK(transmitted_bits == uart_tx_ref.get_frame(data_to_send));
+    check_transmitted_frame(*this, uart_tx_ref, 0xA5);
 
     for (int i = 0; i < 5; ++i) {
         sim.clk.cycle();
         CHECK(dut->tx == 1);  // IDLE state
+    }
+}
+
+TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits random frames", "[uart_tx]") {
+    UartTxRef uart_tx_ref {};
+    std::mt19937 random{0xA17};
+
+    for (int i = 0; i < 100; ++i) {
+        check_transmitted_frame(*this, uart_tx_ref, static_cast<std::uint8_t>(random()));
     }
 }
