@@ -64,7 +64,7 @@ void check_received_frame(
 
 
 TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
-    // open_trace(wave_dir, "uart_rx_reset");
+    open_trace(wave_dir, "uart_rx_reset");
     
     dut->data_out = 0xFF;  // should remain unaffected by reset
     sim.eval_dump();
@@ -81,7 +81,7 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
 }
 
 TEST_CASE_METHOD(UartRxFixture, "UART receiver enable works", "[uart_rx]") {
-    // open_trace(wave_dir, "uart_rx_enable");
+    open_trace(wave_dir, "uart_rx_enable");
     
     dut->data_out = 0xFF;  // should remain unaffected by reset
     dut_reset();

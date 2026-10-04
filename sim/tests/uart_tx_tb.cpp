@@ -56,7 +56,7 @@ void check_transmitted_frame(
 
 
 TEST_CASE_METHOD(UartTxFixture, "UART transmitter reset and enable work", "[uart_tx]") {
-    // open_trace(wave_dir, "uart_tx_reset");
+    open_trace(wave_dir, "uart_tx_reset");
     
     dut_reset();
     CHECK(dut->tx == 1);

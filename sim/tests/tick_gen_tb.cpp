@@ -35,14 +35,14 @@ const std::string wave_dir = "traces/tick_gen";
 
 
 TEST_CASE_METHOD(TickGenFixture, "Tick generator reset works", "[tick_gen]") {
-    // open_trace(wave_dir, "tick_gen_reset");
+    open_trace(wave_dir, "tick_gen_reset");
     
     dut_reset();
     CHECK(dut->tick == 0); 
 }
 
 TEST_CASE_METHOD(TickGenFixture, "Tick generator first ticks after (clk_freq/tick_freq) + 1 cycles", "[tick_gen]") {
-    // open_trace(wave_dir, "tick_gen_first_tick");
+    open_trace(wave_dir, "tick_gen_first_tick");
     
     dut_reset();
     for (int i = 0; i < clk_freq_hz/tick_freq_hz; ++i) {
@@ -55,7 +55,7 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator first ticks after (clk_freq/tic
 }
 
 TEST_CASE_METHOD(TickGenFixture, "Tick generator is periodic", "[tick_gen]") {
-    // open_trace(wave_dir, "tick_gen_periodic");
+    open_trace(wave_dir, "tick_gen_periodic");
 
     std::vector<int> tick_history;
     
