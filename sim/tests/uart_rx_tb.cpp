@@ -33,17 +33,15 @@ const std::string wave_dir = "traces/uart_rx";
 
 void check_received_frame(
     UartRxFixture& fixture,
-    UartTxRef& uart_tx_ref,
-    std::uint8_t data,
-    bool parity_error = false,
-    bool frame_error = false
+    const std::vector<int>& received_frame,
+    std::uint8_t expected_data,
+    bool expected_error
 ) {
     fixture.dut_reset();
-    auto frame = uart_tx_ref.get_frame(data, parity_error, frame_error);
     bool saw_done = false;
     bool received_error = false;
 
-    for (int bit : frame) {
+    for (int bit : received_frame) {
         for (int tick = 0; tick < 16; ++tick) {
             fixture.dut->rx = bit;
             fixture.sim.clk.cycle();
@@ -58,8 +56,8 @@ void check_received_frame(
     fixture.sim.clk.cycles(4);
 
     CHECK(saw_done);
-    CHECK(fixture.dut->data_out == data);
-    CHECK(received_error == (parity_error || frame_error));
+    CHECK(fixture.dut->data_out == expected_data);
+    CHECK(received_error == expected_error);
 }
 
 
@@ -99,14 +97,15 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver enable works", "[uart_rx]") {
     }
 }
 
-TEST_CASE_METHOD(UartRxFixture, "UART receiver detects frame errors", "[uart_rx]") {
+TEST_CASE_METHOD(UartRxFixture, "UART receiver detects errors", "[uart_rx]") {
     open_trace(wave_dir, "uart_rx_receive");
 
     UartTxRef uart_tx_ref {8, 1, parity_cfg_t::PARITY_EVEN};
 
-    check_received_frame(*this, uart_tx_ref, 0xA5, true, false);
-    check_received_frame(*this, uart_tx_ref, 0xA5, false, true);
-    check_received_frame(*this, uart_tx_ref, 0xA5, true, true);
+    std::uint8_t sample_data = 0xA5;
+    check_received_frame(*this, uart_tx_ref.get_frame(sample_data, true, false), sample_data, true);
+    check_received_frame(*this, uart_tx_ref.get_frame(sample_data, false, true), sample_data, true);
+    check_received_frame(*this, uart_tx_ref.get_frame(sample_data, true, true), sample_data, true);
 }
 
 TEST_CASE_METHOD(UartRxFixture, "UART receiver receives random frames", "[uart_rx]") {
@@ -116,12 +115,13 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver receives random frames", "[uart_r
     for (int rep = 0; rep < 100; ++rep) {
         const bool parity_error = random() % 2;
         const bool frame_error = random() % 2;
+        const auto data = static_cast<std::uint8_t>(random());
+        const auto expected_frame = uart_tx_ref.get_frame(data, parity_error, frame_error);
         check_received_frame(
             *this,
-            uart_tx_ref,
-            static_cast<std::uint8_t>(random()),
-            parity_error,
-            frame_error
+            expected_frame,
+            data,
+            parity_error || frame_error
         );
     }
 }

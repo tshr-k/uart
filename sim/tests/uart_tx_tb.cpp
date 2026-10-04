@@ -33,7 +33,7 @@ const std::string wave_dir = "traces/uart_tx";
 
 void check_transmitted_frame(
     UartTxFixture& fixture,
-    UartTxRef& uart_tx_ref,
+    const std::vector<int>& expected_frame,
     std::uint8_t data
 ) {
     fixture.dut_reset();
@@ -45,13 +45,13 @@ void check_transmitted_frame(
     fixture.sim.eval_dump();
 
     std::vector<int> transmitted_bits;
-    for (int bit = 0; bit < uart_tx_ref.get_frame_length(); ++bit) {
+    for (int bit = 0; bit < expected_frame.size(); ++bit) {
         fixture.sim.clk.cycle();
         transmitted_bits.push_back(fixture.dut->tx);
     }
 
     CHECK(fixture.dut->done_tick == 1);
-    CHECK(transmitted_bits == uart_tx_ref.get_frame(data));
+    CHECK(transmitted_bits == expected_frame);
 }
 
 
@@ -74,7 +74,7 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits a frame correctly", 
 
     UartTxRef uart_tx_ref {};
 
-    check_transmitted_frame(*this, uart_tx_ref, 0xA5);
+    check_transmitted_frame(*this, uart_tx_ref.get_frame(0xA5), 0xA5);
 
     for (int bit = 0; bit < 5; ++bit) {
         sim.clk.cycle();
@@ -87,6 +87,7 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits random frames", "[ua
     std::mt19937 random{0xA17};
 
     for (int rep = 0; rep < 100; ++rep) {
-        check_transmitted_frame(*this, uart_tx_ref, static_cast<std::uint8_t>(random()));
+        const auto data = static_cast<std::uint8_t>(random());
+        check_transmitted_frame(*this, uart_tx_ref.get_frame(data), data);
     }
 }
