@@ -1,4 +1,4 @@
-// header-only verilator testbench utils
+// header-only Verilator testbench utils
 
 #pragma once
 
@@ -32,6 +32,7 @@ public:
     friend class Clock<Dut>;
 
     void eval() {
+        // no clock edge occurs
         dut_->eval();
     }
 

@@ -121,8 +121,8 @@ TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") 
         lockstep_cycle(true, data, false);
     }
 
-    lockstep_cycle(true, 0xff, false);  // write while full is ignored
-    lockstep_cycle(true, 0xee, true);  // simultaneous read and blocked write
+    lockstep_cycle(true, 0xFF, false);  // write while full is ignored
+    lockstep_cycle(true, 0xEE, true);  // simultaneous read and blocked write
 
     for (std::uint8_t data = 16; data < 31; ++data) {
         lockstep_cycle(true, data, true);  // simultaneous read and write
@@ -130,7 +130,7 @@ TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model", "[fifo]") 
 
     lockstep_cycle(false, 0, true);
     lockstep_cycle(false, 0, true);
-    lockstep_cycle(true, 0xa5, true);
+    lockstep_cycle(true, 0xA5, true);
 
     while (!fifo_ref.empty()) {
         lockstep_cycle(false, 0, true);
@@ -180,7 +180,7 @@ TEST_CASE_METHOD(FifoFixture, "FIFO RTL matches reference C++ model with random 
         lockstep_check();
     };
 
-    for (int i = 0; i < 100; ++i) {
+    for (int cycle = 0; cycle < 100; ++cycle) {
         bool wr_en = rand() % 2;
         std::uint8_t wr_data = static_cast<std::uint8_t>(rand() % 256);
         bool pop_en = rand() % 2;

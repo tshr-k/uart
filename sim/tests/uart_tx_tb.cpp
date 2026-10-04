@@ -45,7 +45,7 @@ void check_transmitted_frame(
     fixture.sim.eval_dump();
 
     std::vector<int> transmitted_bits;
-    for (std::size_t i = 0; i < uart_tx_ref.get_frame_length(); ++i) {
+    for (int bit = 0; bit < uart_tx_ref.get_frame_length(); ++bit) {
         fixture.sim.clk.cycle();
         transmitted_bits.push_back(fixture.dut->tx);
     }
@@ -76,9 +76,9 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits a frame correctly", 
 
     check_transmitted_frame(*this, uart_tx_ref, 0xA5);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int bit = 0; bit < 5; ++bit) {
         sim.clk.cycle();
-        CHECK(dut->tx == 1);  // IDLE state
+        CHECK(dut->tx == 1);  // idle
     }
 }
 
@@ -86,7 +86,7 @@ TEST_CASE_METHOD(UartTxFixture, "UART transmitter transmits random frames", "[ua
     UartTxRef uart_tx_ref {};
     std::mt19937 random{0xA17};
 
-    for (int i = 0; i < 100; ++i) {
+    for (int rep = 0; rep < 100; ++rep) {
         check_transmitted_frame(*this, uart_tx_ref, static_cast<std::uint8_t>(random()));
     }
 }

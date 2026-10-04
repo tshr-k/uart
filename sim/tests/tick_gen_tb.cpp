@@ -45,7 +45,7 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator first ticks after (clk_freq/tic
     open_trace(wave_dir, "tick_gen_first_tick");
     
     dut_reset();
-    for (int i = 0; i < clk_freq_hz/tick_freq_hz; ++i) {
+    for (int cycle = 0; cycle < clk_freq_hz/tick_freq_hz; ++cycle) {
         sim.clk.cycle();
         CHECK(dut->tick == 0);
     }
@@ -60,15 +60,15 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator is periodic", "[tick_gen]") {
     std::vector<int> tick_history;
     
     dut_reset();
-    for (int i = 0; i < ticks_pattern_period; ++i) {
+    for (int cycle = 0; cycle < ticks_pattern_period; ++cycle) {
         sim.clk.cycle();
         tick_history.push_back(dut->tick);
     }
 
     for (int rep = 0; rep < 5; ++rep) {
-        for (int i = 0; i < ticks_pattern_period; ++i) {
+        for (int cycle = 0; cycle < ticks_pattern_period; ++cycle) {
             sim.clk.cycle();
-            CHECK(dut->tick == tick_history[i]);
+            CHECK(dut->tick == tick_history[cycle]);
         }
     }
     
@@ -83,7 +83,7 @@ TEST_CASE_METHOD(TickGenFixture, "Tick generator is never off by 1 or more ticks
 
     dut_reset();
     for (int rep = 0; rep < 5; ++rep) {
-        for (int i = 0; i < ticks_pattern_period; ++i) {
+        for (int cycle = 0; cycle < ticks_pattern_period; ++cycle) {
             sim.clk.cycle();
             if (dut->tick) {
                 ++ticks;

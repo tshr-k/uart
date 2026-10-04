@@ -17,7 +17,7 @@ void DutFixture<Vuart_rx>::dut_reset() {
     dut->en_tick = 1;
     dut->clk = 0;
     dut->a_rst = 0;
-    dut->rx = 1;  // idle state
+    dut->rx = 1;  // idle
     sim.eval_dump();
 
     dut->a_rst = 1;
@@ -44,7 +44,7 @@ void check_received_frame(
     bool received_error = false;
 
     for (int bit : frame) {
-        for (int i = 0; i < 16; ++i) {
+        for (int tick = 0; tick < 16; ++tick) {
             fixture.dut->rx = bit;
             fixture.sim.clk.cycle();
             if (fixture.dut->done_tick == 1) {
@@ -66,16 +66,17 @@ void check_received_frame(
 TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
     open_trace(wave_dir, "uart_rx_reset");
     
-    dut->data_out = 0xFF;  // should remain unaffected by reset
+    std::uint8_t initial_data_out = 0xE3;
+    dut->data_out = initial_data_out;  // should remain unaffected by reset
     sim.eval_dump();
 
     dut_reset();
-    CHECK(dut->data_out == 0xFF);
+    CHECK(dut->data_out == initial_data_out);
     CHECK(dut->done_tick == 0);
     CHECK(dut->error == 0);
 
     sim.clk.cycles(99);  // rx is idle, so no change should occur
-    CHECK(dut->data_out == 0xFF);
+    CHECK(dut->data_out == initial_data_out);
     CHECK(dut->done_tick == 0);
     CHECK(dut->error == 0);
 }
@@ -83,15 +84,16 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver reset works", "[uart_rx]") {
 TEST_CASE_METHOD(UartRxFixture, "UART receiver enable works", "[uart_rx]") {
     open_trace(wave_dir, "uart_rx_enable");
     
-    dut->data_out = 0xFF;  // should remain unaffected by reset
+    std::uint8_t initial_data_out = 0x39;
+    dut->data_out = initial_data_out;  // should remain unaffected by reset
     dut_reset();
 
     dut->en_tick = 0;  // disable reception
     sim.eval_dump();
 
-    for (int i = 0; i < 5; ++i) {
+    for (int tick = 0; tick < 5; ++tick) {
         sim.clk.cycle();
-        CHECK(dut->data_out == 0xFF);
+        CHECK(dut->data_out == initial_data_out);
         CHECK(dut->done_tick == 0);
         CHECK(dut->error == 0);
     }
@@ -111,7 +113,7 @@ TEST_CASE_METHOD(UartRxFixture, "UART receiver receives random frames", "[uart_r
     UartTxRef uart_tx_ref {8, 1, parity_cfg_t::PARITY_EVEN};
     std::mt19937 random{0xA17};
 
-    for (int i = 0; i < 100; ++i) {
+    for (int rep = 0; rep < 100; ++rep) {
         const bool parity_error = random() % 2;
         const bool frame_error = random() % 2;
         check_received_frame(
