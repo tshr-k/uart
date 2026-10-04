@@ -1,0 +1,12 @@
+{
+  "index": [
+    {
+      "dirs": ["."],
+      "excludeDirs": [
+        "build",
+        "coverage",
+        "verilog"
+      ]
+    }
+  ]
+}
