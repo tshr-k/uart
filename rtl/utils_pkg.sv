@@ -6,7 +6,7 @@ package utils_pkg;
         return (a > b) ? a : b;
     endfunction
 
-    // Compute $clog2(x) but clamped to [1, infinity)
+    // compute $clog2(x) but clamped to [1, infinity)
     function automatic int unsigned min1_clog2(
         input int unsigned x
     );

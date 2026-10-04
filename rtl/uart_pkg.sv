@@ -19,7 +19,7 @@ package uart_pkg;
         STOP
     } state_t;
 
-    // Convert stop_bits_cfg to ticks
+    // convert stop_bits_cfg to ticks
     function automatic int unsigned stop_ticks(
         input stop_bits_cfg_t stop_bits_cfg,
         input int unsigned    oversample  // ticks per bit
@@ -31,7 +31,7 @@ package uart_pkg;
         endcase
     endfunction
 
-    // Validate parameters common to UART receiver and transmitter
+    // validate parameters common to UART receiver and transmitter
     function automatic void validate_shared_uart_params(
         input int unsigned    data_bits,
         input stop_bits_cfg_t stop_bits_cfg,
