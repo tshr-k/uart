@@ -19,7 +19,6 @@ void DutFixture<Vcounter>::dut_reset() {
 
     dut->a_rst = 0;
     sim.eval_dump();
-    
 }
 
 using CounterFixture = DutFixture<Vcounter>;
