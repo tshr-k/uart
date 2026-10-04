@@ -81,7 +81,7 @@ add_verilator_test(uart_tx TRUE
     pkg/uart_pkg
     pkg/utils_pkg
 )
-add_verilator_test(uart FALSE
+add_verilator_test(uart TRUE
     pkg/uart_pkg
     pkg/utils_pkg
     pkg/tick_gen_pkg
