@@ -5,8 +5,7 @@ module counter_props #(
     input logic a_rst,
     input logic en
 );
-    localparam int unsigned COUNT_WIDTH = (MODULO == 1) ? 1 : $clog2(MODULO);
-    typedef logic [COUNT_WIDTH-1:0] count_t;
+    typedef logic [$clog2(MODULO)-1:0] count_t;
     
     localparam count_t MAX_COUNT = MODULO-1;
 
@@ -22,6 +21,11 @@ module counter_props #(
     );
 
     // assert liveness properties
+    assert_count_eventually_changes:
+        assert property (@(posedge clk)
+            en |-> ##[1:$] (count != $past(count))
+        );
+
     assert_count_eventually_increments:
         assert property (@(posedge clk)
             (en && count < MAX_COUNT) |-> ##[1:$] (count == $past(count) + 1)
@@ -44,6 +48,11 @@ module counter_props #(
 
     assert_count_stays_still_when_disabled:
         assert property (@(posedge clk)
-            (!en) |-> ##[1:$] (count == $past(count))
+            !en |-> ##[1:$] (count == $past(count))
+        );
+
+    assert_count_eventually_changes_after_reenable:
+        assert property (@(posedge clk)
+            (en && ! $past(en)) |-> ##[1:$] (count != $past(count))
         );
 endmodule

@@ -46,8 +46,8 @@ package uart_pkg;
     endfunction
 
     function automatic void validate_oversample_param(input int unsigned oversample);
-        assert (oversample > 0)
-            else $fatal(1, "OVERSAMPLE must be > 0");
+        assert (oversample > 1)
+            else $fatal(1, "OVERSAMPLE must be > 1");
         assert (oversample % 2 == 0)
             else $fatal(1, "OVERSAMPLE must be even");
     endfunction

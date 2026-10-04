@@ -10,8 +10,8 @@ module counter #(
     output logic [min1_clog2(MODULO)-1:0] count
 );
     initial begin
-        assert (MODULO > 0)
-            else $fatal(1, "MODULO must be > 0");
+        assert (MODULO > 1)
+            else $fatal(1, "MODULO must be > 1");
     end
 
     typedef logic [min1_clog2(MODULO)-1:0] count_t;
