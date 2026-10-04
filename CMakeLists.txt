@@ -31,8 +31,6 @@ function(add_verilator_test module_name has_tb)
     foreach(dep_name IN LISTS ARGN)
         if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/rtl/${dep_name}.sv)
             list(APPEND RTL_SRC rtl/${dep_name}.sv)
-        elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/rtl/pkg/${dep_name}.sv)
-            list(APPEND RTL_SRC rtl/pkg/${dep_name}.sv)
         else()
             message(FATAL_ERROR "RTL dependency not found: ${dep_name}.sv")
         endif()
@@ -45,6 +43,7 @@ function(add_verilator_test module_name has_tb)
         SOURCES ${RTL_SRC}
         TOP_MODULE ${module_name}
         PREFIX V${module_name}
+        COVERAGE
         TRACE_FST
     )
     
@@ -65,27 +64,27 @@ endfunction()
 
 
 add_verilator_test(counter TRUE
-    utils_pkg
+    pkg/utils_pkg
 )
 add_verilator_test(tick_gen TRUE
-    utils_pkg
-    tick_gen_pkg
+    pkg/utils_pkg
+    pkg/tick_gen_pkg
 )
 add_verilator_test(fifo TRUE
-    utils_pkg
+    pkg/utils_pkg
 )
 add_verilator_test(uart_rx TRUE
-    uart_pkg
-    utils_pkg
+    pkg/uart_pkg
+    pkg/utils_pkg
 )
 add_verilator_test(uart_tx TRUE
-    uart_pkg
-    utils_pkg
+    pkg/uart_pkg
+    pkg/utils_pkg
 )
 add_verilator_test(uart FALSE
-    uart_pkg
-    utils_pkg
-    tick_gen_pkg
+    pkg/uart_pkg
+    pkg/utils_pkg
+    pkg/tick_gen_pkg
     tick_gen
     counter
     fifo
