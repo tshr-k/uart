@@ -6,7 +6,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "tb_utils.hpp"
-#include "uart_tx/uart_tx_ref.hpp"
+#include "uart_tx_ref.hpp"
 #include "Vuart_rx.h"
 
 

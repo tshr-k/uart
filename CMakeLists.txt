@@ -15,9 +15,9 @@ function(add_verilator_test module_name has_tb)
 
     # build an executable even if no testbench exists, to check Verilator compilation
     set(TB_SRC)
-    list(APPEND TB_SRC tb/main.cpp)
+    list(APPEND TB_SRC sim/main.cpp)
     if(${has_tb})
-        list(APPEND TB_SRC tb/${module_name}/${module_name}_tb.cpp)
+        list(APPEND TB_SRC sim/tests/${module_name}_tb.cpp)
     endif()
 
     add_executable(${TEST_EXE_NAME}
@@ -27,7 +27,13 @@ function(add_verilator_test module_name has_tb)
     # construct list of RTL sources from command line arguments
     set(RTL_SRC)
     foreach(dep_name IN LISTS ARGN)
-        list(APPEND RTL_SRC rtl/${dep_name}.sv)
+        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/rtl/${dep_name}.sv)
+            list(APPEND RTL_SRC rtl/${dep_name}.sv)
+        elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/rtl/pkg/${dep_name}.sv)
+            list(APPEND RTL_SRC rtl/pkg/${dep_name}.sv)
+        else()
+            message(FATAL_ERROR "RTL dependency not found: ${dep_name}.sv")
+        endif()
     endforeach()
     list(APPEND RTL_SRC rtl/${module_name}.sv)
     
@@ -41,8 +47,9 @@ function(add_verilator_test module_name has_tb)
     )
     
     target_include_directories(${TEST_EXE_NAME} PRIVATE
-        tb
-        tb/${module_name}
+        sim
+        sim/ref
+        sim/utils
     )
 
     target_link_libraries(${TEST_EXE_NAME} PRIVATE
@@ -51,7 +58,9 @@ function(add_verilator_test module_name has_tb)
 endfunction()
 
 
-add_verilator_test(counter TRUE)
+add_verilator_test(counter TRUE
+    utils_pkg
+)
 add_verilator_test(tick_gen TRUE
     utils_pkg
     tick_gen_pkg
