@@ -4,9 +4,11 @@
 
 #include <cstdint>
 #include <format>
-#include <stdexcept>
-#include <string_view>
+#include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 
 #include "verilated.h"
 #include "verilated_fst_c.h"
@@ -119,8 +121,17 @@ struct DutFixture {
         trace_ = std::make_unique<VerilatedFstC>();
         dut->trace(trace_.get(), 99);
         sim.set_trace(trace_.get());
+
+        const auto trace_path =
+            std::filesystem::path(wave_dir) / (std::string(wave_name) + ".fst");
+        std::filesystem::create_directories(trace_path.parent_path());
+        trace_->open(trace_path.c_str());
         
-        trace_->open(std::format("{}/{}.fst", wave_dir, wave_name).c_str());
+        if (!trace_->isOpen()) {
+            throw std::runtime_error(
+                std::format("failed to open waveform trace '{}'", trace_path.string())
+            );
+        }
         trace_open_ = true;
     }
 

@@ -59,6 +59,9 @@ function(add_verilator_test module_name has_tb)
 
     if(${has_tb})
         add_test(NAME ${TEST_EXE_NAME} COMMAND ${TEST_EXE_NAME})
+        set_tests_properties(${TEST_EXE_NAME}
+            PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
     endif()
 endfunction()
 
