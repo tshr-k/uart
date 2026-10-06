@@ -1,5 +1,5 @@
 .vscode
-build
-traces
-verilog
-coverage
+build/
+traces/
+verilog/
+coverage/
