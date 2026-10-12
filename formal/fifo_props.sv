@@ -105,4 +105,69 @@ module fifo_props #(
             ((wr_en && !$past(wr_en) && empty) || (pop_en && !$past(pop_en) && full))
                 |=> s_eventually (empty != $past(empty) || full != $past(full))
         );
+
+    // assert safety properties
+    // past_valid is low during reset and the cycle after it, when $past would sample pre-reset state
+    // (guards are written explicitly because EBMC does not support disable iff)
+    logic a_rst_d;
+    logic past_valid;
+
+    always_ff @(posedge clk)
+        a_rst_d <= a_rst;
+
+    assign past_valid = !a_rst && !a_rst_d;
+
+    // track occupancy independently of the fifo's own count
+    logic [$clog2(DEPTH+1)-1:0] occupancy;
+
+    always_ff @(posedge clk or posedge a_rst) begin
+        if (a_rst)
+            occupancy <= '0;
+        else
+            case ({wr_en && !full, pop_en && !empty})
+                2'b10:   occupancy <= occupancy + 1;
+                2'b01:   occupancy <= occupancy - 1;
+                default: ;
+            endcase
+    end
+
+    assert_fifo_empty_after_reset:
+        assert property (@(posedge clk)
+            $past(a_rst) |-> (empty && !full)
+        );
+
+    assert_fifo_never_empty_and_full:
+        assert property (@(posedge clk)
+            !a_rst |-> !(empty && full)
+        );
+
+    assert_empty_matches_occupancy:
+        assert property (@(posedge clk)
+            !a_rst |-> (empty == (occupancy == 0))
+        );
+
+    assert_full_matches_occupancy:
+        assert property (@(posedge clk)
+            !a_rst |-> (full == (occupancy == DEPTH))
+        );
+
+    assert_fifo_nonempty_after_write:
+        assert property (@(posedge clk)
+            (past_valid && $past(wr_en && !full)) |-> !empty
+        );
+
+    assert_fifo_nonfull_after_pop:
+        assert property (@(posedge clk)
+            (past_valid && $past(pop_en && !empty)) |-> !full
+        );
+
+    assert_write_to_empty_fifo_appears_at_head:
+        assert property (@(posedge clk)
+            (past_valid && $past(wr_en && empty)) |-> (rd_data == $past(wr_data))
+        );
+
+    assert_head_holds_until_pop:
+        assert property (@(posedge clk)
+            (past_valid && $past(!empty && !pop_en)) |-> (rd_data == $past(rd_data))
+        );
 endmodule

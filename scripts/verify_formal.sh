@@ -29,4 +29,4 @@ yosys -q -p "
 " > /dev/null
 
 # apply exactly one initial reset pulse then assume reset is never asserted again
-ebmc "$PROPS" "$VERILOG" --bound 10 --reset "$MODULE"_props.a_rst==1
+ebmc "$PROPS" "$VERILOG" --bound 30 --reset "$MODULE"_props.a_rst==1

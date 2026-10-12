@@ -74,4 +74,40 @@ module counter_props #(
         assert property (@(posedge clk)
             (en && ! $past(en)) |=> s_eventually (count != $past(count))
         );
+
+    // assert safety properties
+    // past_valid is low during reset and the cycle after it, when $past would sample pre-reset state
+    // (guards are written explicitly because EBMC does not support disable iff)
+    logic a_rst_d;
+    logic past_valid;
+
+    always_ff @(posedge clk)
+        a_rst_d <= a_rst;
+
+    assign past_valid = !a_rst && !a_rst_d;
+
+    assert_count_zero_after_reset:
+        assert property (@(posedge clk)
+            $past(a_rst) |-> (count == 0)
+        );
+
+    assert_count_never_exceeds_max:
+        assert property (@(posedge clk)
+            !a_rst |-> (count <= MAX_COUNT)
+        );
+
+    assert_count_increments_when_enabled:
+        assert property (@(posedge clk)
+            (past_valid && $past(en && count != MAX_COUNT)) |-> (count == $past(count) + 1)
+        );
+
+    assert_count_wraps_when_enabled_at_max:
+        assert property (@(posedge clk)
+            (past_valid && $past(en && count == MAX_COUNT)) |-> (count == 0)
+        );
+
+    assert_count_holds_when_disabled:
+        assert property (@(posedge clk)
+            (past_valid && $past(!en)) |-> (count == $past(count))
+        );
 endmodule
