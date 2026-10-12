@@ -1,11 +1,6 @@
 # UART
 
-## Project overview
-
-This project implements a parameterised UART in SystemVerilog, including
-transmit and receive paths, baud-rate tick generation, buffering, and error
-handling. It includes C++/Verilator simulations with coverage plus bounded
-formal checks for the RTL.
+A parameterised UART in SystemVerilog, including transmit and receive paths, baud-rate tick generation, buffering, and error handling. It includes C++/Verilator simulations with coverage plus bounded formal checks for the RTL.
 
 ## Repository organisation
 
@@ -33,3 +28,5 @@ The project requires:
 
 The formal verification script expects the OSS CAD Suite environment at
 `$HOME/tools/oss-cad-suite/environment`.
+
+The rich SystemVerilog used for the RTL must first be synthesized into Verilog for the formal tool's use. Also, packages and parameter overrides are avoided in the formal verification wrapper modules since EBMC doesn't yet support these features.

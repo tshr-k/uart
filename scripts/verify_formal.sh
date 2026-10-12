@@ -16,7 +16,7 @@ mkdir -p verilog
 
 # synthesize rich-SystemVerilog RTL to the simple Verilog that EBMC requires
 yosys -q -p "
-    read_slang $RTL rtl/pkg/utils_pkg.sv
+    read_slang rtl/pkg/*.sv $RTL
     hierarchy -check -top $MODULE
     proc
     opt
