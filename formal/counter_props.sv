@@ -42,36 +42,36 @@ module counter_props #(
     // assert liveness properties
     assert_count_eventually_changes:
         assert property (@(posedge clk)
-            en |-> ##[1:$] (count != $past(count))
+            en |=> s_eventually (count != $past(count))
         );
 
     assert_count_eventually_increments:
         assert property (@(posedge clk)
-            (en && count < MAX_COUNT) |-> ##[1:$] (count == $past(count) + 1)
+            (en && count < MAX_COUNT) |=> s_eventually (count == $past(count) + 1)
         );
 
     assert_count_eventually_wraps:
         assert property (@(posedge clk)
-            (en && count == MAX_COUNT) |-> ##[1:$] (count == 0)
+            (en && count == MAX_COUNT) |=> s_eventually (count == 0)
         );
 
     assert_count_eventually_reaches_zero:
         assert property (@(posedge clk)
-            (en && count != 0) |-> ##[1:$] (count == 0)
+            (en && count != 0) |=> s_eventually (count == 0)
         );
 
     assert_count_eventually_reaches_max:
         assert property (@(posedge clk)
-            (en && count < MAX_COUNT) |-> ##[1:$] (count == MAX_COUNT)
+            (en && count < MAX_COUNT) |=> s_eventually (count == MAX_COUNT)
         );
 
     assert_count_stays_still_when_disabled:
         assert property (@(posedge clk)
-            !en |-> ##[1:$] (count == $past(count))
+            (!a_rst && !en) |=> s_eventually (count == $past(count))
         );
 
     assert_count_eventually_changes_after_reenable:
         assert property (@(posedge clk)
-            (en && ! $past(en)) |-> ##[1:$] (count != $past(count))
+            (en && ! $past(en)) |=> s_eventually (count != $past(count))
         );
 endmodule

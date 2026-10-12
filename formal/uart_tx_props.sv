@@ -60,36 +60,36 @@ module uart_tx_props #(
     // assert liveness properties
     assert_tx_eventually_starts_frame:
         assert property (@(posedge clk)
-            (en_tick && data_ready) |-> ##[1:$] !tx
+            (!a_rst && en_tick && data_ready) |=> s_eventually !tx
         );
 
     assert_tx_eventually_returns_high:
         assert property (@(posedge clk)
-            (en_tick && !tx) |-> ##[1:$] tx
+            (en_tick && !tx) |=> s_eventually tx
         );
 
     assert_done_tick_eventually_asserts:
         assert property (@(posedge clk)
-            (en_tick && data_ready) |-> ##[1:$] done_tick
+            (!a_rst && en_tick && data_ready) |=> s_eventually done_tick
         );
 
     assert_done_tick_eventually_deasserts:
         assert property (@(posedge clk)
-            (en_tick && done_tick) |-> ##[1:$] !done_tick
+            (en_tick && done_tick) |=> s_eventually !done_tick
         );
 
     assert_tx_eventually_starts_next_frame:
         assert property (@(posedge clk)
-            (en_tick && done_tick && data_ready) |-> ##[1:$] !tx
+            (!a_rst && en_tick && done_tick && data_ready) |=> s_eventually !tx
         );
 
     assert_tx_stays_still_without_tick:
         assert property (@(posedge clk)
-            !en_tick |-> ##[1:$] (tx == $past(tx))
+            !en_tick |=> s_eventually (tx == $past(tx))
         );
 
     assert_done_tick_stays_still_without_tick:
         assert property (@(posedge clk)
-            !en_tick |-> ##[1:$] (done_tick == $past(done_tick))
+            !en_tick |=> s_eventually (done_tick == $past(done_tick))
         );
 endmodule

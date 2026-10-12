@@ -73,27 +73,27 @@ module fifo_props #(
     // assert liveness properties
     assert_fifo_eventually_nonempty_after_write:
         assert property (@(posedge clk)
-            (wr_en && empty) |-> ##[1:$] !empty
+            (wr_en && empty) |=> s_eventually !empty
         );
 
     assert_fifo_eventually_nonfull_after_pop:
         assert property (@(posedge clk)
-            (pop_en && full) |-> ##[1:$] !full
+            (pop_en && full) |=> s_eventually !full
         );
 
-    assert_fifo_eventually_empties:
+    assert_fifo_eventually_leaves_full:
         assert property (@(posedge clk)
-            (pop_en && !wr_en && !empty) |-> ##[1:$] empty
+            full |=> s_eventually !full
         );
 
-    assert_fifo_eventually_fills:
+    assert_fifo_eventually_leaves_empty:
         assert property (@(posedge clk)
-            (wr_en && !pop_en && !full) |-> ##[1:$] full
+            empty |=> s_eventually !empty
         );
 
     assert_fifo_stays_still_when_idle:
         assert property (@(posedge clk)
-            (!wr_en && !pop_en) |-> ##[1:$] (
+            (!a_rst && !wr_en && !pop_en) |=> s_eventually (
                 empty   == $past(empty) &&
                 full    == $past(full)  &&
                 rd_data == $past(rd_data)
@@ -103,6 +103,6 @@ module fifo_props #(
     assert_fifo_eventually_changes_after_reenable:
         assert property (@(posedge clk)
             ((wr_en && !$past(wr_en) && empty) || (pop_en && !$past(pop_en) && full))
-                |-> ##[1:$] (empty != $past(empty) || full != $past(full))
+                |=> s_eventually (empty != $past(empty) || full != $past(full))
         );
 endmodule

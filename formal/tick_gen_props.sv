@@ -19,21 +19,21 @@ module tick_gen_props #(
     // assert liveness properties
     assert_tick_eventually_asserts:
         assert property (@(posedge clk)
-            !tick |-> ##[1:$] tick
+            !tick |=> s_eventually tick
         );
 
     assert_tick_eventually_deasserts:
         assert property (@(posedge clk)
-            tick |-> ##[1:$] !tick
+            tick |=> s_eventually !tick
         );
 
     assert_tick_eventually_rises:
         assert property (@(posedge clk)
-            !tick |-> ##[1:$] $rose(tick)
+            !tick |=> s_eventually $rose(tick)
         );
 
     assert_tick_eventually_reasserts_after_falling:
         assert property (@(posedge clk)
-            $fell(tick) |-> ##[1:$] tick
+            $fell(tick) |=> s_eventually tick
         );
 endmodule
